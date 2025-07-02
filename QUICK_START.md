@@ -1,27 +1,64 @@
 # 🎧 Project 5001 - Quick Start Guide
 
+## 🚀 **One-Command Setup**
+
 ### 1. **Clone and Setup**
 ```bash
-git clone <your-repo>
+git clone https://github.com/Hunstagamez/5001.git
 cd 5001
-python setup_project5001.py
+python initialiser.py --setup
 ```
 
-### 2. **Follow the Interactive Setup**
-The setup script will guide you through:
-- Choosing your node type (Main/Secondary/Mobile)
-- Configuring YouTube playlists
-- Setting up Syncthing integration
-- Testing the configuration
-
-### 3. **Start Your Node**
+### 2. **Configure YouTube Cookies**
 ```bash
-# Main node (downloads from YouTube)
-python harvester_v2.py main --daemon
+# Copy the template
+cp cookies.example.txt cookies.txt
 
-# Or use systemd
-sudo systemctl enable project5001-main-node.service
-sudo systemctl start project5001-main-node.service
+# Edit cookies.txt with your YouTube cookies
+# See cookies.example.txt for detailed instructions
+```
+
+### 3. **Start the System**
+```bash
+# Quick start (checks health and starts if ready)
+python initialiser.py --quick
+
+# Or start manually
+python initialiser.py --start
+```
+
+## 🎛️ **Management Interface**
+
+### **Full CLI Management**
+```bash
+python cli.py
+```
+Provides interactive menus for:
+- 🎵 Harvester Control (start/stop/status)
+- 📋 Playlist Management (generate all playlists)
+- 📊 System Status (database, files, Syncthing)
+- 📁 File Operations (browse, search, cleanup)
+- ⚙️ Configuration (view, validate, reload)
+- 📝 Logs & Debugging (view, search, cleanup)
+- 🔄 Syncthing Operations (rescan, test connection)
+- ❓ Help & Documentation
+
+### **Quick Commands**
+```bash
+# Check system status
+python initialiser.py --status
+
+# Health check
+python initialiser.py --health
+
+# Maintenance tasks
+python initialiser.py --maintenance
+
+# Stop services
+python initialiser.py --stop
+
+# Restart services
+python initialiser.py --restart
 ```
 
 ## 📱 Node Types
@@ -35,11 +72,11 @@ sudo systemctl start project5001-main-node.service
 ### **Secondary Node** (E.g. Travel Laptop)
 - Receives music from main node via Syncthing
 - Full library sync
-- Can be promoted to download duty should something happen to main node.
+- Can be promoted to download duty should something happen to main node
 
 ### **Mobile Node** (iPhone)
 - Uses Syncthing iOS app
-- Full IPhone library sync
+- Full iPhone library sync
 - Offline playback with VLC or preferred app
 
 ## 🔧 Core Features
@@ -48,7 +85,7 @@ sudo systemctl start project5001-main-node.service
 - Automatically detects YouTube rate limiting
 - Rotates between devices to avoid blocks
 - Intelligent cooldown periods
-- Aggressive download strategy (fuck YouTube)
+- Aggressive download strategy
 
 ### **Distributed RAID-esque System**
 - Multiple devices hold complete copies
@@ -56,6 +93,13 @@ sudo systemctl start project5001-main-node.service
 - Automatic failover and recovery
 - P2P mesh networking via Syncthing
 - Plug-N-Play node expansion functionality
+
+### **Intelligent Playlist Generation**
+- **Main Archive**: Complete collection (all tracks)
+- **Recent Additions**: Last 30 days of new music
+- **Monthly Playlists**: Organized by month (last 6 months)
+- **Artist Playlists**: Grouped by artist (3+ tracks minimum)
+- **Favorites**: Recent additions (top 100)
 
 ### **Priority Sync**
 - New tracks sync first
@@ -67,21 +111,25 @@ sudo systemctl start project5001-main-node.service
 
 ### **Check Status**
 ```bash
-python status.py
+# Full status report
+python initialiser.py --status
+
+# JSON output for scripting
+python status.py --json
 ```
 
 ### **View Logs**
 ```bash
-# Main node
-tail -f Project5001/Logs/main-node.log
+# View recent logs
+python cli.py -> Logs -> View Recent Logs
 
-# Secondary node  
-tail -f Project5001/Logs/secondary-node.log
+# Or manually
+tail -f Project5001/Logs/main-node.log
 ```
 
-### **Database Stats**
+### **Health Check**
 ```bash
-python status.py --json
+python initialiser.py --health
 ```
 
 ## 🎵 Audio Quality
@@ -93,7 +141,7 @@ python status.py --json
 
 ## 🔄 Syncthing Setup
 
-> **Important:** You must sync the `Project5001/Harvest` folder (NOT the root) between your devices. This is where all music is downloaded and stored. Syncing the wrong folder will prevent your hive from coordinating your catalogue.
+> **Important:** You must sync the `Project5001/Harvest` folder (NOT the root) between your devices. This is where all music is downloaded and stored.
 
 ### **Get API Key**
 1. Open Syncthing Web UI (http://localhost:8384)
@@ -128,21 +176,27 @@ python status.py --json
 - Point to synced `Project5001/Harvest` folder
 
 > **Common Pitfalls:**
-> - Make sure you are syncing the `Project5001/Harvest` folder, NOT the project root.
-> - Folder ID, Device ID, and API URL should be taken from your main node (laptop/desktop), not the phone.
-> - The iPhone should be set as a receive-only node in Syncthing.
+> - Make sure you are syncing the `Project5001/Harvest` folder, NOT the project root
+> - Folder ID, Device ID, and API URL should be taken from your main node (laptop/desktop), not the phone
+> - The iPhone should be set as a receive-only node in Syncthing
 
 ## 🍪 YouTube Cookies Required!
 
 **YouTube now requires authentication for most music downloads.**
 
-1. **Export your YouTube cookies:**
-   - Install the [Get cookies.txt] browser extension on your select browser.
-   - Go to youtube.com and sign in.
-   - Click the extension and export cookies for youtube.com.
-   - Save the file as `cookies.txt` in your Project 5001 directory.
+1. **Copy the template:**
+   ```bash
+   cp cookies.example.txt cookies.txt
+   ```
 
-2. **The harvester will automatically use `cookies.txt` for all downloads.**
+2. **Get your YouTube cookies:**
+   - Go to YouTube and log in
+   - Open browser DevTools (F12)
+   - Go to Application/Storage tab
+   - Find 'Cookies' → 'https://youtube.com'
+   - Copy the values for required cookies (see `cookies.example.txt` for details)
+
+3. **The harvester will automatically use `cookies.txt` for all downloads.**
 
 If you do not provide cookies, most downloads will fail or require sign-in.
 
@@ -168,7 +222,7 @@ curl http://localhost:8384/rest/system/status
 
 **iPhone sync issues:**
 - Ensure Syncthing iOS has background app refresh enabled
-- Check storage space (50GB+ Recommended, though it de)
+- Check storage space (50GB+ Recommended)
 - Verify folder sharing permissions
 
 ### **Reset Configuration**
@@ -176,20 +230,21 @@ curl http://localhost:8384/rest/system/status
 # Remove config and start over
 rm -rf config/
 rm -rf Project5001/
-python setup_project5001.py
+python initialiser.py --setup
 ```
 
 ## 🎯 Next Steps
 
 1. **Start with Main Node**: Set up your home laptop first
-2. **Add Secondary Node**: Configure your current laptop
+2. **Add Secondary Node**: Configure your travel laptop
 3. **Setup iPhone**: Install Syncthing iOS and music player
 4. **Monitor & Optimize**: Use status tools to monitor performance
 5. **Scale Up**: Add more devices to the rotation pool
 
 ## 📚 Full Documentation
 
-- **Technical Details**: `TECHNICAL_README.md`
+- **CLI Management**: `python cli.py --help`
+- **System Initializer**: `python initialiser.py --help`
 - **Configuration**: `config.py` and generated JSON files
 - **Database Schema**: `database.py`
 - **Rate Limiting**: `rate_limiter.py`
@@ -198,10 +253,6 @@ python setup_project5001.py
 ## 🆘 Support
 
 - **Logs**: Check `Project5001/Logs/` for detailed error messages
-- **Status**: Use `python status.py` for system health
-- **Configuration**: Review generated JSON files in `config/`
-- **Database**: SQLite database in `Project5001/harvest.db`
-
----
-
-**May your harvest be bountiful.** 
+- **Status**: `python initialiser.py --status`
+- **Health Check**: `python initialiser.py --health`
+- **Maintenance**: `python initialiser.py --maintenance` 

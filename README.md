@@ -30,99 +30,91 @@ Built around a single principle:
 
 ## 🚀 Quick Start
 
-### 1. **Clone and Setup**
+### **One-Command Setup**
 ```bash
 git clone https://github.com/Hunstagamez/5001.git
 cd 5001
 python initialiser.py --setup
 ```
 
-### 2. **Configure YouTube Cookies**
-```bash
-# Copy the template and add your YouTube cookies
-cp cookies.example.txt cookies.txt
-# Edit cookies.txt with your actual YouTube cookies (see instructions in file)
-```
-
-### 3. **Start the System**
+### **Start the System**
 ```bash
 # Quick start (checks health and starts if ready)
 python initialiser.py --quick
 
-# Or use the full CLI menu
-python cli.py
+# Or start manually
+python initialiser.py --start
 ```
 
-### 4. **Manage Your System**
+### **Manage Your System**
 ```bash
+# Full management interface
+python cli.py
+
 # Check status
 python initialiser.py --status
-
-# Run maintenance
-python initialiser.py --maintenance
-
-# Stop services
-python initialiser.py --stop
 ```
 
 ---
 
-## 🎯 Current Features
+## 🧱 The Stack
 
-### ✅ **Working Now**
-- **Smart YouTube Playlist Harvesting** - Downloads music from your playlists
-- **Intelligent Rate Limiting** - Detects and avoids YouTube blocks
-- **Device Rotation** - Distributes downloads across multiple devices
-- **Metadata Tagging** - Auto-tags MP3s with artist, title, and source info
-- **Database Tracking** - Tracks all downloads and metadata
-- **Smart Playlist Generation** - Creates organized playlists automatically:
-  - Main archive (all tracks)
-  - Recent additions (last 30 days)
-  - Monthly playlists (by month)
-  - Artist playlists (by artist)
-  - Favorites (recent highlights)
-- **Syncthing Integration** - Syncs music across your devices
-- **Unified CLI Menu** - Easy management interface
-- **System Initializer** - One-command setup and startup
-- **Health Monitoring** - System status and diagnostics
-
-### 🔄 **Syncthing Setup**
-- **Main Node**: Downloads from YouTube, coordinates the network
-- **Secondary Nodes**: Receive music via Syncthing
-- **Mobile Nodes**: iPhone setup with VLC for playback
-- **Automatic Sync**: New tracks sync first, backfill older content
-
----
-
-## 🛠️ The Stack
-
-- 🛠️ **yt-dlp** - YouTube downloading and metadata extraction
-- 🎧 **mutagen** - Audio file tagging and metadata
-- 🧬 **Syncthing** - Distributed file synchronization
-- 🎬 **FFmpeg** - Audio conversion and processing
-- 🐍 **Python 3.8+** - Core application logic
-- 📊 **SQLite** - Local database for tracking
-- 🎵 **M3U Playlists** - Universal playlist format
+- 🛠️ `yt-dlp` for harvesting  
+- 🎧 `mutagen` for tagging  
+- 🧬 `Syncthing` for device mesh  
+- 🎛️ `FFmpeg` for audio conversion
+- 🐍 `Python 3.8+` for orchestration
+- 📊 `SQLite` for metadata storage
 
 ---
 
 ## 📱 Node Types
 
-### **Main Node** (Home Machine)
+### **Main Node** (Home Machine Recommended)
 - Downloads music from YouTube playlists
 - Coordinates the distributed network
 - Manages device rotation for rate limiting
 - Triggers Syncthing sync after downloads
 
-### **Secondary Node** (Travel Laptop)
+### **Secondary Node** (E.g. Travel Laptop)
 - Receives music from main node via Syncthing
 - Full library sync
-- Can be promoted to download duty if main node fails
+- Can be promoted to download duty should something happen to main node
 
 ### **Mobile Node** (iPhone)
 - Uses Syncthing iOS app
 - Full iPhone library sync
 - Offline playback with VLC or preferred app
+
+---
+
+## 🔧 Core Features
+
+### **Smart Rate Limiting Detection**
+- Automatically detects YouTube rate limiting
+- Rotates between devices to avoid blocks
+- Intelligent cooldown periods
+- Aggressive download strategy
+
+### **Distributed RAID-esque System**
+- Multiple devices hold complete copies
+- No single point of failure
+- Automatic failover and recovery
+- P2P mesh networking via Syncthing
+- Plug-N-Play node expansion functionality
+
+### **Intelligent Playlist Generation**
+- Main archive playlist (all tracks)
+- Recent additions (last 30 days)
+- Monthly playlists (last 6 months)
+- Artist-specific playlists
+- Favorites playlist (recent additions)
+
+### **Priority Sync**
+- New tracks sync first
+- Backfill older content
+- Full library on iPhone
+- No bandwidth throttling
 
 ---
 
@@ -135,89 +127,119 @@ python initialiser.py --stop
 
 ---
 
-## 🔧 Management
-
-### **CLI Menu System**
-```bash
-python cli.py
-```
-- 🎵 Harvester Control (start/stop/status)
-- 📋 Playlist Management (generate all types)
-- 📊 System Status (database, files, Syncthing)
-- 📁 File Operations (browse, search, cleanup)
-- ⚙️ Configuration (view, validate, reload)
-- 📝 Logs & Debugging (view, search, cleanup)
-- 🔄 Syncthing Operations (rescan, test connection)
-- ❓ Help & Documentation
-
-### **System Initializer**
-```bash
-python initialiser.py --help
-```
-- `--setup` - Run initial system setup
-- `--quick` - Quick start (check health and start if ready)
-- `--start` - Start all services
-- `--stop` - Stop all services
-- `--restart` - Restart all services
-- `--status` - Show system status
-- `--health` - Check system health
-- `--maintenance` - Run maintenance tasks
-
----
-
-## 📊 Monitoring
-
-### **Check Status**
-```bash
-python status.py
-python status.py --json  # For programmatic use
-```
-
-### **View Logs**
-```bash
-# Main node
-tail -f Project5001/Logs/main-node.log
-
-# Secondary node  
-tail -f Project5001/Logs/secondary-node.log
-```
-
----
-
 ## 🍪 YouTube Cookies Required!
 
 **YouTube now requires authentication for most music downloads.**
 
-1. **Get your cookies:**
-   - Go to YouTube and log in
-   - Open browser DevTools (F12)
-   - Go to Application/Storage → Cookies → https://youtube.com
-   - Copy the values for: SID, HSID, SSID, APISID, SAPISID, __Secure-1PSID, __Secure-3PSID, etc.
-
-2. **Add to cookies.txt:**
+1. **Copy the template:**
    ```bash
    cp cookies.example.txt cookies.txt
-   # Edit cookies.txt with your actual values
    ```
 
----
+2. **Get your YouTube cookies:**
+   - Go to YouTube and log in
+   - Open browser DevTools (F12)
+   - Go to Application/Storage tab
+   - Find 'Cookies' → 'https://youtube.com'
+   - Copy the values for required cookies (see `cookies.example.txt` for details)
 
-## ⚠️ This Repo Is For Me
-
-You're welcome to read it, fork it, or adapt it.  
-But this isn't a product, and it's not a one-size-fits-all.
-It's me making sure I get what I want.
-
----
-
-## 🕳️ Lore
-
-> Project 5001 isn't named after a file.  
-> It's named after the **first song YouTube wouldn't let me save**.
+3. **The harvester will automatically use `cookies.txt` for all downloads.**
 
 ---
 
-**Take back control of your music.** 🎧
+## 🔄 Syncthing Setup
+
+> **Important:** You must sync the `Project5001/Harvest` folder (NOT the root) between your devices. This is where all music is downloaded and stored.
+
+### **Get API Key**
+1. Open Syncthing Web UI (http://localhost:8384)
+2. Actions → Settings → API
+3. Copy the API key
+
+### **Get Folder ID**
+1. In Syncthing Web UI
+2. Select your `Project5001/Harvest` folder
+3. Copy folder ID from URL
+
+### **Device IDs**
+- Each device has a unique Syncthing ID
+- Found in Syncthing Web UI → My Devices
+- Required for device rotation
+
+---
+
+## 📱 iPhone Setup
+
+### **1. Install Syncthing iOS**
+- Download from App Store
+- Create account and add main node as device
+
+### **2. Share Project5001/Harvest Folder**
+- In main node's Syncthing
+- Share the `Project5001/Harvest` folder with your iPhone
+- Accept on iPhone
+- **Set the iPhone as a receive-only node** (do not enable send permissions)
+
+### **3. Install Music Player**
+- VLC (recommended)
+- Or any app that can access Files app
+- Point to synced `Project5001/Harvest` folder
+
+---
+
+## 🚨 Troubleshooting
+
+### **Common Issues**
+
+**yt-dlp not found:**
+```bash
+pip install yt-dlp
+```
+
+**Syncthing API errors:**
+```bash
+# Check if Syncthing is running
+curl http://localhost:8384/rest/system/status
+```
+
+**Rate limiting:**
+- System automatically rotates devices
+- Check rotation status: `python status.py`
+- Manual rotation available in logs
+
+**iPhone sync issues:**
+- Ensure Syncthing iOS has background app refresh enabled
+- Check storage space (50GB+ Recommended)
+- Verify folder sharing permissions
+
+### **Reset Configuration**
+```bash
+# Remove config and start over
+rm -rf config/
+rm -rf Project5001/
+python initialiser.py --setup
+```
+
+---
+
+## 📚 Documentation
+
+- **Quick Start**: `QUICK_START.md`
+- **CLI Management**: `python cli.py --help`
+- **System Initializer**: `python initialiser.py --help`
+- **Configuration**: `config.py` and generated JSON files
+- **Database Schema**: `database.py`
+- **Rate Limiting**: `rate_limiter.py`
+- **Advanced Harvester**: `harvester_v2.py`
+
+---
+
+## 🆘 Support
+
+- **Logs**: Check `Project5001/Logs/` for detailed error messages
+- **Status**: `python initialiser.py --status`
+- **Health Check**: `python initialiser.py --health`
+- **Maintenance**: `python initialiser.py --maintenance`
 
 ---
 
@@ -230,22 +252,13 @@ It's me making sure I get what I want.
 
 ---
 
-> **Important Architecture Note:**
-> 
-> **Project 5001's device mesh (the "hive") and Syncthing's file syncing are separate systems.**
-> - The device mesh controls which devices can download, coordinate, and rotate for rate limiting.
-> - Syncthing handles actual file transfer and folder synchronization between devices.
-> 
-> **To fully participate in the distributed system, a device must be:**
-> 1. Added to the Project 5001 mesh (for download/coordination logic).
-> 2. Added to Syncthing (for file syncing).
-> 
-> **You must add new devices to both Project 5001 and Syncthing for full functionality.**
->
-> **Important:** When configuring Syncthing, make sure to sync the `Project5001/Harvest` folder (not just the project root or another folder). This is where all music is downloaded and stored. Syncing the wrong folder will prevent your devices from receiving new music.
->
-> - The iPhone should be set up as a receive-only node in Syncthing, syncing only the `Project5001/Harvest` folder. Use VLC or another music player that can access the Files app for playback.
->
-> - Folder ID, Device ID, and API URL should be taken from your main node (laptop/desktop), not the phone.
+## 🕳️ Lore
+
+> Project 5001 isn't named after a file.  
+> It's named after the **first song YouTube wouldn't let me save**.
+
+---
+
+**Take back control of your music.** 🎧
 
 ---
