@@ -69,3 +69,14 @@ It's me making sure I get what I want.
 
 **More to come.**  
 Take back control of your music.
+
+---
+
+## ⚠️ DISCLAIMER
+
+> This project is intended for personal use only.  
+> It does not distribute or host any copyrighted content.  
+> All tools used (e.g. yt-dlp) are publicly available and legally maintained.  
+> The developer does not condone piracy or public redistribution of copyrighted material.
+
+---
