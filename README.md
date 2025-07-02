@@ -6,7 +6,7 @@ A self-hosted, fault-tolerant music archival system built to overcome YouTube’
 
 **Project 5001 (or, just 5001)** is made to free me.  
 It started the moment I realised YouTube wouldn't save more than 5,000 tracks in a playlist.  
-No subscription, no algorithm, no ads, no bureaucrats picking what songs I get to keep.  
+No subscription, no algorithm, no ads, no desk jockeys picking what songs I get to keep.  
 This project is my way of taking back control from bloat, from drift, from artificial caps.
 
 It’s not a streaming service.  
