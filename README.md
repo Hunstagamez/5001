@@ -1,9 +1,5 @@
-# 5001
-A self-hosted, fault-tolerant music archival system built to overcome YouTube’s 5,000 playlist limit. Offline-first. Spite-built. Closed-system.
-
-
 # 🎧 Project 5001
-
+A self-hosted, fault-tolerant music archival system built to overcome YouTube’s 5,000 playlist limit. Offline-first. Spite-built. Closed-system.
 > *Youtube limited me to 5000 songs, so I am taking matters into my own hands.*
 
 ---
@@ -19,7 +15,7 @@ It’s a vault. My vault of taste, curated and indestructible.
 
 Built around a single principle:
 
-> _The playlist never ends._
+> _My playlist is mine, not Google's._
 
 ---
 
