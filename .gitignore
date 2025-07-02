@@ -1,0 +1,380 @@
+# Project 5001 - Git Ignore File
+# Excludes harvested music, user settings, logs, and generated files
+
+# ========================================
+# HARVESTED MUSIC & MEDIA FILES
+# ========================================
+# Never commit actual music files - they're synced via Syncthing
+Project5001/Harvest/
+Project5001/Harvest/*
+*.mp3
+*.m4a
+*.flac
+*.wav
+*.ogg
+*.aac
+
+# ========================================
+# PLAYLIST FILES
+# ========================================
+# Playlists are generated and synced - don't commit them
+Project5001/Playlists/
+Project5001/Playlists/*
+*.m3u
+*.m3u8
+*.pls
+
+# ========================================
+# DATABASE FILES
+# ========================================
+# Database contains user data and should not be committed
+Project5001/harvest.db
+Project5001/*.db
+*.db
+*.sqlite
+*.sqlite3
+
+# ========================================
+# LOG FILES
+# ========================================
+# Logs contain sensitive information and are generated
+Project5001/Logs/
+Project5001/Logs/*
+*.log
+logs/
+*.log.*
+
+# ========================================
+# CONFIGURATION & USER SETTINGS
+# ========================================
+# User-specific configuration files
+config/
+config/*
+*.json
+!config.example.json
+!config.template.json
+
+# Environment variables and secrets
+.env
+.env.local
+.env.production
+.env.development
+*.env
+
+# User settings and preferences
+settings.json
+user_config.json
+preferences.json
+
+# ========================================
+# COOKIES & AUTHENTICATION
+# ========================================
+# YouTube cookies and authentication files
+cookies.txt
+cookies.json
+auth.json
+credentials.json
+*.cookies
+
+# ========================================
+# TEMPORARY & CACHE FILES
+# ========================================
+# Temporary files and caches
+*.tmp
+*.temp
+*.cache
+cache/
+temp/
+tmp/
+
+# Download caches
+.yt-dlp/
+yt-dlp-cache/
+download_cache/
+
+# ========================================
+# SYSTEM & EDITOR FILES
+# ========================================
+# Windows
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+$RECYCLE.BIN/
+*.lnk
+
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+Icon
+._*
+.DocumentRevisions-V100
+.fseventsd
+.Spotlight-V100
+.TemporaryItems
+.Trashes
+.VolumeIcon.icns
+.com.apple.timemachine.donotpresent
+.AppleDB
+.AppleDesktop
+Network Trash Folder
+Temporary Items
+.apdisk
+
+# Linux
+*~
+.fuse_hidden*
+.directory
+.Trash-*
+.nfs*
+
+# ========================================
+# EDITOR & IDE FILES
+# ========================================
+# VSCode
+.vscode/
+*.code-workspace
+
+# PyCharm
+.idea/
+*.iml
+*.ipr
+*.iws
+
+# Sublime Text
+*.sublime-project
+*.sublime-workspace
+
+# Vim
+*.swp
+*.swo
+*~
+
+# Emacs
+*~
+\#*\#
+/.emacs.desktop
+/.emacs.desktop.lock
+*.elc
+auto-save-list
+tramp
+.\#*
+
+# ========================================
+# PYTHON SPECIFIC
+# ========================================
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# C extensions
+*.so
+
+# Distribution / packaging
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+share/python-wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+
+# PyInstaller
+*.manifest
+*.spec
+
+# Installer logs
+pip-log.txt
+pip-delete-this-directory.txt
+
+# Unit test / coverage reports
+htmlcov/
+.tox/
+.nox/
+.coverage
+.coverage.*
+.cache
+nosetests.xml
+coverage.xml
+*.cover
+*.py,cover
+.hypothesis/
+.pytest_cache/
+cover/
+
+# Translations
+*.mo
+*.pot
+
+# Django stuff:
+*.log
+local_settings.py
+db.sqlite3
+db.sqlite3-journal
+
+# Flask stuff:
+instance/
+.webassets-cache
+
+# Scrapy stuff:
+.scrapy
+
+# Sphinx documentation
+docs/_build/
+
+# PyBuilder
+.pybuilder/
+target/
+
+# Jupyter Notebook
+.ipynb_checkpoints
+
+# IPython
+profile_default/
+ipython_config.py
+
+# pyenv
+.python-version
+
+# pipenv
+Pipfile.lock
+
+# poetry
+poetry.lock
+
+# pdm
+.pdm.toml
+
+# PEP 582
+__pypackages__/
+
+# Celery stuff
+celerybeat-schedule
+celerybeat.pid
+
+# SageMath parsed files
+*.sage.py
+
+# Environments
+.env
+.venv
+env/
+venv/
+ENV/
+env.bak/
+venv.bak/
+
+# Spyder project settings
+.spyderproject
+.spyproject
+
+# Rope project settings
+.ropeproject
+
+# mkdocs documentation
+/site
+
+# mypy
+.mypy_cache/
+.dmypy.json
+dmypy.json
+
+# Pyre type checker
+.pyre/
+
+# pytype static type analyzer
+.pytype/
+
+# Cython debug symbols
+cython_debug/
+
+# ========================================
+# SYNCTHING SPECIFIC
+# ========================================
+# Syncthing configuration and data
+.syncthing/
+Syncthing/
+*.syncthing
+
+# ========================================
+# FFMPEG & AUDIO TOOLS
+# ========================================
+# FFmpeg temporary files
+ffmpeg2pass-*
+*.ffindex
+
+# ========================================
+# BACKUP & ARCHIVE FILES
+# ========================================
+# Backup files
+*.bak
+*.backup
+*.old
+*.orig
+*.save
+
+# Archive files
+*.zip
+*.tar
+*.tar.gz
+*.rar
+*.7z
+
+# ========================================
+# PROJECT SPECIFIC
+# ========================================
+# Project 5001 specific exclusions
+start-harvester.bat
+start-main-node.bat
+*.service
+project5001-*.service
+
+# Rate limiter data
+rate_limit_data.json
+device_rotation.json
+
+# Test files
+test_*.py
+*_test.py
+tests/
+test/
+
+# ========================================
+# MISC
+# ========================================
+# Any other files that shouldn't be committed
+*.pid
+*.seed
+*.pid.lock
+
+# Local development files
+local/
+dev/
+development/
+
+# Production files
+prod/
+production/
+
+# Debug files
+debug/
+*.debug
+
+# Crash dumps
+*.dmp
+*.crash
+
+# Memory dumps
+*.hprof 
