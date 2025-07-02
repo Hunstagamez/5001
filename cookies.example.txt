@@ -1,0 +1,42 @@
+# YouTube Cookies Template for Project 5001
+# 
+# INSTRUCTIONS:
+# 1. Copy this file to 'cookies.txt'
+# 2. Get your YouTube cookies from your browser
+# 3. Replace the placeholder values below with your actual cookies
+#
+# How to get YouTube cookies:
+# 1. Go to YouTube and log in
+# 2. Open browser DevTools (F12)
+# 3. Go to Application/Storage tab
+# 4. Find 'Cookies' → 'https://youtube.com'
+# 5. Copy the values for these cookies:
+#
+# Required cookies:
+# - SID
+# - HSID  
+# - SSID
+# - APISID
+# - SAPISID
+# - __Secure-1PSID
+# - __Secure-3PSID
+# - __Secure-1PAPISID
+# - __Secure-3PAPISID
+# - __Secure-1PSIDCC
+# - __Secure-3PSIDCC
+#
+# Example format:
+# .youtube.com	TRUE	/	FALSE	1735689600	SID	YOUR_SID_VALUE_HERE
+# .youtube.com	TRUE	/	FALSE	1735689600	HSID	YOUR_HSID_VALUE_HERE
+# .youtube.com	TRUE	/	FALSE	1735689600	SSID	YOUR_SSID_VALUE_HERE
+# .youtube.com	TRUE	/	FALSE	1735689600	APISID	YOUR_APISID_VALUE_HERE
+# .youtube.com	TRUE	/	FALSE	1735689600	SAPISID	YOUR_SAPISID_VALUE_HERE
+# .youtube.com	TRUE	/	FALSE	1735689600	__Secure-1PSID	YOUR_1PSID_VALUE_HERE
+# .youtube.com	TRUE	/	FALSE	1735689600	__Secure-3PSID	YOUR_3PSID_VALUE_HERE
+# .youtube.com	TRUE	/	FALSE	1735689600	__Secure-1PAPISID	YOUR_1PAPISID_VALUE_HERE
+# .youtube.com	TRUE	/	FALSE	1735689600	__Secure-3PAPISID	YOUR_3PAPISID_VALUE_HERE
+# .youtube.com	TRUE	/	FALSE	1735689600	__Secure-1PSIDCC	YOUR_1PSIDCC_VALUE_HERE
+# .youtube.com	TRUE	/	FALSE	1735689600	__Secure-3PSIDCC	YOUR_3PSIDCC_VALUE_HERE
+#
+# IMPORTANT: Keep your cookies.txt file private and never commit it to Git!
+# This file contains your authentication credentials. 

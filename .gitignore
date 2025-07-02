@@ -75,6 +75,8 @@ cookies.json
 auth.json
 credentials.json
 *.cookies
+# Allow cookies template
+!cookies.example.txt
 
 # ========================================
 # TEMPORARY & CACHE FILES
@@ -311,6 +313,10 @@ Syncthing/
 # ========================================
 # FFMPEG & AUDIO TOOLS
 # ========================================
+# FFmpeg binaries (included in repo for convenience)
+# ffmpeg.exe
+# ffprobe.exe
+
 # FFmpeg temporary files
 ffmpeg2pass-*
 *.ffindex
