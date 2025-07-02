@@ -28,17 +28,177 @@ Built around a single principle:
 
 ---
 
-## 🧪 Current State
+## 🚀 Quick Start
 
-5001 is still in the forge.  
-As of writing it's all still in my head, but it won't stay that way.  
-Soon it will:
+### 1. **Clone and Setup**
+```bash
+git clone https://github.com/Hunstagamez/5001.git
+cd 5001
+python initialiser.py --setup
+```
 
-- Rip full YouTube playlists cleanly, audio-only
-- Auto-tag and store my songs in structured formats
-- Sync across my main devices via local mesh (Syncthing, no cloud)
-- Stream locally, cache permanently
-- Self-assess and debug during development via cloud agents.
+### 2. **Configure YouTube Cookies**
+```bash
+# Copy the template and add your YouTube cookies
+cp cookies.example.txt cookies.txt
+# Edit cookies.txt with your actual YouTube cookies (see instructions in file)
+```
+
+### 3. **Start the System**
+```bash
+# Quick start (checks health and starts if ready)
+python initialiser.py --quick
+
+# Or use the full CLI menu
+python cli.py
+```
+
+### 4. **Manage Your System**
+```bash
+# Check status
+python initialiser.py --status
+
+# Run maintenance
+python initialiser.py --maintenance
+
+# Stop services
+python initialiser.py --stop
+```
+
+---
+
+## 🎯 Current Features
+
+### ✅ **Working Now**
+- **Smart YouTube Playlist Harvesting** - Downloads music from your playlists
+- **Intelligent Rate Limiting** - Detects and avoids YouTube blocks
+- **Device Rotation** - Distributes downloads across multiple devices
+- **Metadata Tagging** - Auto-tags MP3s with artist, title, and source info
+- **Database Tracking** - Tracks all downloads and metadata
+- **Smart Playlist Generation** - Creates organized playlists automatically:
+  - Main archive (all tracks)
+  - Recent additions (last 30 days)
+  - Monthly playlists (by month)
+  - Artist playlists (by artist)
+  - Favorites (recent highlights)
+- **Syncthing Integration** - Syncs music across your devices
+- **Unified CLI Menu** - Easy management interface
+- **System Initializer** - One-command setup and startup
+- **Health Monitoring** - System status and diagnostics
+
+### 🔄 **Syncthing Setup**
+- **Main Node**: Downloads from YouTube, coordinates the network
+- **Secondary Nodes**: Receive music via Syncthing
+- **Mobile Nodes**: iPhone setup with VLC for playback
+- **Automatic Sync**: New tracks sync first, backfill older content
+
+---
+
+## 🛠️ The Stack
+
+- 🛠️ **yt-dlp** - YouTube downloading and metadata extraction
+- 🎧 **mutagen** - Audio file tagging and metadata
+- 🧬 **Syncthing** - Distributed file synchronization
+- 🎬 **FFmpeg** - Audio conversion and processing
+- 🐍 **Python 3.8+** - Core application logic
+- 📊 **SQLite** - Local database for tracking
+- 🎵 **M3U Playlists** - Universal playlist format
+
+---
+
+## 📱 Node Types
+
+### **Main Node** (Home Machine)
+- Downloads music from YouTube playlists
+- Coordinates the distributed network
+- Manages device rotation for rate limiting
+- Triggers Syncthing sync after downloads
+
+### **Secondary Node** (Travel Laptop)
+- Receives music from main node via Syncthing
+- Full library sync
+- Can be promoted to download duty if main node fails
+
+### **Mobile Node** (iPhone)
+- Uses Syncthing iOS app
+- Full iPhone library sync
+- Offline playback with VLC or preferred app
+
+---
+
+## 🎵 Audio Quality
+
+- **Target**: 256kbps MP3
+- **Fallback**: 192k, 128k, 96k if needed
+- **Storage**: <80GB for 5000+ tracks
+- **Format**: MP3 with full metadata tagging
+
+---
+
+## 🔧 Management
+
+### **CLI Menu System**
+```bash
+python cli.py
+```
+- 🎵 Harvester Control (start/stop/status)
+- 📋 Playlist Management (generate all types)
+- 📊 System Status (database, files, Syncthing)
+- 📁 File Operations (browse, search, cleanup)
+- ⚙️ Configuration (view, validate, reload)
+- 📝 Logs & Debugging (view, search, cleanup)
+- 🔄 Syncthing Operations (rescan, test connection)
+- ❓ Help & Documentation
+
+### **System Initializer**
+```bash
+python initialiser.py --help
+```
+- `--setup` - Run initial system setup
+- `--quick` - Quick start (check health and start if ready)
+- `--start` - Start all services
+- `--stop` - Stop all services
+- `--restart` - Restart all services
+- `--status` - Show system status
+- `--health` - Check system health
+- `--maintenance` - Run maintenance tasks
+
+---
+
+## 📊 Monitoring
+
+### **Check Status**
+```bash
+python status.py
+python status.py --json  # For programmatic use
+```
+
+### **View Logs**
+```bash
+# Main node
+tail -f Project5001/Logs/main-node.log
+
+# Secondary node  
+tail -f Project5001/Logs/secondary-node.log
+```
+
+---
+
+## 🍪 YouTube Cookies Required!
+
+**YouTube now requires authentication for most music downloads.**
+
+1. **Get your cookies:**
+   - Go to YouTube and log in
+   - Open browser DevTools (F12)
+   - Go to Application/Storage → Cookies → https://youtube.com
+   - Copy the values for: SID, HSID, SSID, APISID, SAPISID, __Secure-1PSID, __Secure-3PSID, etc.
+
+2. **Add to cookies.txt:**
+   ```bash
+   cp cookies.example.txt cookies.txt
+   # Edit cookies.txt with your actual values
+   ```
 
 ---
 
@@ -50,16 +210,6 @@ It's me making sure I get what I want.
 
 ---
 
-## 🧱 The Stack (Soon)
-
-- 🛠️ `yt-dlp` for harvesting  
-- 🎧 `mutagen` for tagging  
-- 🧬 `Syncthing` for device mesh  
-- 🎛️ `Navidrome` for streaming  
-- 🤖 Background agents to automate dev & test edge cases  
-
----
-
 ## 🕳️ Lore
 
 > Project 5001 isn't named after a file.  
@@ -67,8 +217,7 @@ It's me making sure I get what I want.
 
 ---
 
-**More to come.**  
-Take back control of your music.
+**Take back control of your music.** 🎧
 
 ---
 
