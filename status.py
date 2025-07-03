@@ -10,15 +10,12 @@ import json
 from datetime import datetime, timedelta
 from pathlib import Path
 from typing import Dict, List
-from dotenv import load_dotenv
-
-# Load environment variables
-load_dotenv()
+# Environment loading is handled by config module
 
 class Project5001Status:
     def __init__(self):
         self.db_path = Path('./Project5001/harvest.db')
-        self.dest_dir = Path(os.getenv('DEST_DIR', './Project5001/Harvest'))
+        self.dest_dir = Path('./Project5001/Harvest')
         self.playlists_dir = Path('./Project5001/Playlists')
         self.logs_dir = Path('./Project5001/Logs')
     
@@ -159,9 +156,8 @@ class Project5001Status:
         """Check Syncthing status."""
         try:
             import requests
-            from dotenv import load_dotenv
-            load_dotenv()
             
+            # Try loading from environment, fallback to None
             api_url = os.getenv('SYNCTHING_API_URL')
             api_key = os.getenv('SYNCTHING_API_KEY')
             

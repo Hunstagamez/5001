@@ -10,24 +10,11 @@ import logging
 from datetime import datetime, timedelta
 from pathlib import Path
 from typing import List, Dict
-from dotenv import load_dotenv
-
-# Load environment variables
-load_dotenv()
-
-# Configuration
-DEST_DIR = Path(os.getenv('DEST_DIR', './Project5001/Harvest'))
+# Configuration - use consistent defaults
+DEST_DIR = Path('./Project5001/Harvest')
 PLAYLISTS_DIR = Path('./Project5001/Playlists')
 
-# Setup logging
-logging.basicConfig(
-    level=logging.INFO,
-    format='%(asctime)s - %(levelname)s - %(message)s',
-    handlers=[
-        logging.FileHandler('./Project5001/Logs/playlist_generation.log'),
-        logging.StreamHandler()
-    ]
-)
+# Note: Logging will be configured by the calling module
 logger = logging.getLogger(__name__)
 
 class PlaylistGenerator:
