@@ -313,9 +313,11 @@ Syncthing/
 # ========================================
 # FFMPEG & AUDIO TOOLS
 # ========================================
-# FFmpeg binaries (included in repo for convenience)
-# ffmpeg.exe
-# ffprobe.exe
+# FFmpeg binaries should be installed system-wide, not committed to repo
+ffmpeg.exe
+ffprobe.exe
+ffmpeg
+ffprobe
 
 # FFmpeg temporary files
 ffmpeg2pass-*

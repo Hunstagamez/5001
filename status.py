@@ -5,8 +5,10 @@ Monitor the health and statistics of your music archive.
 """
 
 import os
+import sys
 import sqlite3
 import json
+import requests
 from datetime import datetime, timedelta
 from pathlib import Path
 from typing import Dict, List
@@ -166,8 +168,6 @@ class Project5001Status:
     def check_syncthing_status(self) -> Dict:
         """Check Syncthing status."""
         try:
-            import requests
-            from dotenv import load_dotenv
             load_dotenv()
             
             api_url = os.getenv('SYNCTHING_API_URL')
@@ -297,10 +297,8 @@ def main():
     """Main entry point."""
     status_checker = Project5001Status()
     
-    import sys
     if len(sys.argv) > 1 and sys.argv[1] == '--json':
         # Output JSON for programmatic use
-        import json
         print(json.dumps(status_checker.get_full_status(), indent=2))
     else:
         # Print formatted status
