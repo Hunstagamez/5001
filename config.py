@@ -165,7 +165,7 @@ class NodeConfig:
         config[keys[-1]] = value
     
     def validate_config(self) -> bool:
-        """Validate current configuration."""
+        """Validate current configuration with enhanced checks."""
         errors = []
         
         # Check required fields based on role
@@ -179,10 +179,31 @@ class NodeConfig:
             if not self.get('main_node_address'):
                 errors.append("Secondary node requires main node address")
         
+        # FIXED: Enhanced validation with more comprehensive checks
         # Check common requirements
         if self.get('syncthing.enabled'):
             if not self.get('syncthing.folder_id'):
                 errors.append("Syncthing folder ID required when enabled")
+            if not self.get('syncthing.api_url'):
+                errors.append("Syncthing API URL required when enabled")
+        
+        # Check directory paths exist or can be created
+        try:
+            for dir_key in ['data_dir', 'harvest_dir', 'playlists_dir', 'logs_dir']:
+                dir_path = Path(self.get(dir_key, ''))
+                if dir_path and not dir_path.exists():
+                    try:
+                        dir_path.mkdir(parents=True, exist_ok=True)
+                        logging.info(f"Created directory: {dir_path}")
+                    except Exception as e:
+                        errors.append(f"Cannot create directory {dir_path}: {e}")
+        except Exception as e:
+            errors.append(f"Directory validation failed: {e}")
+        
+        # Check audio quality settings
+        quality = self.get('audio_quality', '256k')
+        if quality not in ['96k', '128k', '192k', '256k', '320k']:
+            errors.append(f"Invalid audio quality setting: {quality}")
         
         if errors:
             for error in errors:

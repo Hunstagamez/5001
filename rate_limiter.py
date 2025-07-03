@@ -246,6 +246,7 @@ class DeviceManager:
     
     def deactivate_device(self, device_id: str) -> bool:
         """Deactivate a device from rotation."""
+        conn = None
         try:
             conn = sqlite3.connect(self.db.db_path)
             cursor = conn.cursor()
@@ -257,17 +258,20 @@ class DeviceManager:
             ''', (device_id,))
             
             conn.commit()
-            conn.close()
-            
             logging.info(f"Deactivated device: {device_id}")
             return True
             
         except Exception as e:
             logging.error(f"Failed to deactivate device {device_id}: {e}")
             return False
+        finally:
+            # FIXED: Ensure database connection is always closed
+            if conn:
+                conn.close()
     
     def reactivate_device(self, device_id: str) -> bool:
         """Reactivate a device in rotation."""
+        conn = None
         try:
             conn = sqlite3.connect(self.db.db_path)
             cursor = conn.cursor()
@@ -279,14 +283,16 @@ class DeviceManager:
             ''', (device_id,))
             
             conn.commit()
-            conn.close()
-            
             logging.info(f"Reactivated device: {device_id}")
             return True
             
         except Exception as e:
             logging.error(f"Failed to reactivate device {device_id}: {e}")
             return False
+        finally:
+            # FIXED: Ensure database connection is always closed
+            if conn:
+                conn.close()
 
 if __name__ == '__main__':
     # Test rate limiting detection

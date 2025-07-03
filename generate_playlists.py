@@ -46,16 +46,24 @@ class PlaylistGenerator:
         self._date_column = self._get_date_column()
     
     def _get_date_column(self) -> str:
-        """Determine which date column exists in the database."""
+        """Determine which date column exists in the database with migration support."""
         try:
             conn = sqlite3.connect(self.db_path)
             cursor = conn.cursor()
             cursor.execute('PRAGMA table_info(videos)')
             columns = [row[1] for row in cursor.fetchall()]
+            
+            # FIXED: Migrate old 'ts' column to 'download_date' for consistency
+            if 'ts' in columns and 'download_date' not in columns:
+                logger.warning("Migrating legacy 'ts' column to 'download_date' in playlist generator")
+                cursor.execute('ALTER TABLE videos ADD COLUMN download_date TIMESTAMP')
+                cursor.execute('UPDATE videos SET download_date = ts WHERE download_date IS NULL')
+                conn.commit()
+            
             conn.close()
             
-            # Return appropriate column name based on what exists
-            return 'ts' if 'ts' in columns else 'download_date'
+            # Return appropriate column name based on what exists after migration
+            return 'download_date' if 'download_date' in columns or 'ts' in columns else 'download_date'
         except Exception:
             # Default to download_date for new databases
             return 'download_date'

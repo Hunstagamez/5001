@@ -7,6 +7,7 @@ Monitor the health and statistics of your music archive.
 import os
 import sqlite3
 import json
+import logging  # FIXED: Added missing logging import for database migration warnings
 from datetime import datetime, timedelta
 from pathlib import Path
 from typing import Dict, List
@@ -34,13 +35,20 @@ class Project5001Status:
         cursor.execute('SELECT COUNT(*) FROM videos')
         total_tracks = cursor.fetchone()[0]
         
-        # Add compatibility layer for ts column name (legacy support)
+        # FIXED: Improved database schema compatibility with migration support
         # Check for both column names to handle different database versions
         cursor.execute('PRAGMA table_info(videos)')
         columns = [row[1] for row in cursor.fetchall()]
         
+        # Migrate old 'ts' column to 'download_date' if needed for consistency
+        if 'ts' in columns and 'download_date' not in columns:
+            logging.warning("Migrating legacy 'ts' column to 'download_date'")
+            cursor.execute('ALTER TABLE videos ADD COLUMN download_date TIMESTAMP')
+            cursor.execute('UPDATE videos SET download_date = ts WHERE download_date IS NULL')
+            conn.commit()
+        
         # Use appropriate column name based on what exists
-        date_column = 'ts' if 'ts' in columns else 'download_date'
+        date_column = 'download_date' if 'download_date' in columns else 'ts'
         
         # Recent tracks (last 7 days)
         week_ago = (datetime.now() - timedelta(days=7)).isoformat()

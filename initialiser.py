@@ -90,15 +90,39 @@ class Project5001Initializer:
         except Exception as e:
             print(f"❌ Configuration: {e}")
         
-        # Check dependencies
+        # FIXED: Enhanced dependency checking with detailed reporting
+        missing_deps = []
         try:
             import yt_dlp
+        except ImportError:
+            missing_deps.append('yt-dlp')
+        
+        try:
             import mutagen
+        except ImportError:
+            missing_deps.append('mutagen')
+        
+        try:
             import requests
+        except ImportError:
+            missing_deps.append('requests')
+            
+        try:
+            import psutil
+        except ImportError:
+            missing_deps.append('psutil')
+            
+        try:
+            from dotenv import load_dotenv
+        except ImportError:
+            missing_deps.append('python-dotenv')
+        
+        if missing_deps:
+            print(f"❌ Dependencies: Missing {', '.join(missing_deps)}")
+            print("   Install with: pip install " + " ".join(missing_deps))
+        else:
             health_report['dependencies'] = True
             print("✅ Dependencies: All installed")
-        except ImportError as e:
-            print(f"❌ Dependencies: Missing {e}")
         
         # Check Syncthing
         try:

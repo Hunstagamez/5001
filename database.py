@@ -7,6 +7,7 @@ Handles SQLite database for tracking videos, sync status, and device rotation.
 import sqlite3
 import json
 import logging
+import time  # FIXED: Added time import for retry delay functionality
 from datetime import datetime, timedelta
 from pathlib import Path
 from typing import List, Dict, Optional, Tuple
@@ -107,27 +108,45 @@ class Project5001Database:
     def add_video(self, video_id: str, title: str, artist: str, filename: str, 
                   playlist_url: str, file_size: int = None, duration: int = None, 
                   quality: str = None) -> bool:
-        """Add a video to the database."""
-        try:
-            conn = sqlite3.connect(self.db_path)
-            cursor = conn.cursor()
-            
-            cursor.execute('''
-                INSERT OR REPLACE INTO videos 
-                (id, title, artist, filename, playlist_url, file_size, duration, quality, last_modified)
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
-            ''', (video_id, title, artist, filename, playlist_url, file_size, 
-                  duration, quality, datetime.now().isoformat()))
-            
-            conn.commit()
-            conn.close()
-            
-            logging.info(f"Added video to database: {title}")
-            return True
-            
-        except Exception as e:
-            logging.error(f"Failed to add video {video_id}: {e}")
-            return False
+        """Add a video to the database with enhanced error handling."""
+        conn = None
+        max_retries = 3
+        
+        for attempt in range(max_retries):
+            try:
+                conn = sqlite3.connect(self.db_path)
+                cursor = conn.cursor()
+                
+                # FIXED: Added database busy timeout for better concurrency handling
+                cursor.execute('PRAGMA busy_timeout = 30000')  # 30 seconds
+                
+                cursor.execute('''
+                    INSERT OR REPLACE INTO videos 
+                    (id, title, artist, filename, playlist_url, file_size, duration, quality, last_modified)
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+                ''', (video_id, title, artist, filename, playlist_url, file_size, 
+                      duration, quality, datetime.now().isoformat()))
+                
+                conn.commit()
+                logging.info(f"Added video to database: {title}")
+                return True
+                
+            except sqlite3.OperationalError as e:
+                if "locked" in str(e).lower() and attempt < max_retries - 1:
+                    logging.warning(f"Database locked, retrying... (attempt {attempt + 1})")
+                    time.sleep(1)  # Wait before retry
+                    continue
+                else:
+                    logging.error(f"Database error adding video {video_id}: {e}")
+                    return False
+            except Exception as e:
+                logging.error(f"Failed to add video {video_id}: {e}")
+                return False
+            finally:
+                if conn:
+                    conn.close()
+        
+        return False
     
     def get_video(self, video_id: str) -> Optional[Dict]:
         """Get video information from database."""

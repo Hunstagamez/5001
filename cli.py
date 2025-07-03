@@ -34,11 +34,15 @@ class Project5001CLI:
         self.config = None
         self.setup_logging()
         
-        # Import harvester manager
+        # FIXED: Better error handling for harvester manager import
         try:
             from harvester_manager import HarvesterManager
             self.harvester_manager = HarvesterManager()
-        except ImportError:
+        except ImportError as e:
+            logging.warning(f"Harvester manager not available: {e}")
+            self.harvester_manager = None
+        except Exception as e:
+            logging.error(f"Failed to initialize harvester manager: {e}")
             self.harvester_manager = None
         
     def setup_logging(self):

@@ -57,6 +57,10 @@ class AdvancedHarvester:
                 playlist_url
             ]
             
+            # FIXED: Add cookies support for playlist fetching to avoid authentication issues
+            if Path('cookies.txt').exists():
+                cmd.extend(['--cookies', 'cookies.txt'])
+            
             logging.info(f"Fetching playlist: {playlist_url}")
             result = subprocess.run(cmd, capture_output=True, text=True, check=True)
             
@@ -252,15 +256,14 @@ class AdvancedHarvester:
                 '--newline',
                 f'https://www.youtube.com/watch?v={video_id}'
             ]
+            # FIXED: Proper command construction to avoid argument order issues
             # Add cookies.txt if it exists
             if Path('cookies.txt').exists():
-                cmd.insert(1, '--cookies')
-                cmd.insert(2, 'cookies.txt')
+                cmd.extend(['--cookies', 'cookies.txt'])
             # Add ffmpeg location if specified in config
             ffmpeg_path = self.config.get('ffmpeg_path')
             if ffmpeg_path:
-                cmd.insert(1, '--ffmpeg-location')
-                cmd.insert(2, ffmpeg_path)
+                cmd.extend(['--ffmpeg-location', ffmpeg_path])
             
             start_time = time.time()
             result = subprocess.run(cmd, capture_output=True, text=True, timeout=300)
