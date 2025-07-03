@@ -78,7 +78,7 @@ def check_dependencies() -> bool:
     
     # Check yt-dlp
     try:
-        result = subprocess.run(['yt-dlp', '--version'], 
+        result = subprocess.run([sys.executable, '-m', 'yt_dlp', '--version'], 
                               capture_output=True, text=True, check=True)
         print(f"✅ yt-dlp {result.stdout.strip()}")
     except (subprocess.CalledProcessError, FileNotFoundError):

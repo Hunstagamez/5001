@@ -36,7 +36,7 @@ class Project5001Status:
         
         # Recent tracks (last 7 days)
         week_ago = (datetime.now() - timedelta(days=7)).isoformat()
-        cursor.execute('SELECT COUNT(*) FROM videos WHERE ts >= ?', (week_ago,))
+        cursor.execute('SELECT COUNT(*) FROM videos WHERE download_date >= ?', (week_ago,))
         recent_tracks = cursor.fetchone()[0]
         
         # Top artists
@@ -50,7 +50,7 @@ class Project5001Status:
         top_artists = cursor.fetchall()
         
         # Oldest and newest tracks
-        cursor.execute('SELECT MIN(ts), MAX(ts) FROM videos')
+        cursor.execute('SELECT MIN(download_date), MAX(download_date) FROM videos')
         oldest, newest = cursor.fetchone()
         
         conn.close()

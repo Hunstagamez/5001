@@ -5,6 +5,7 @@ Core harvesting system with rate limiting detection, device rotation, and smart 
 """
 
 import os
+import sys
 import json
 import logging
 import time
@@ -49,7 +50,7 @@ class AdvancedHarvester:
         """Fetch videos from a YouTube playlist using yt-dlp."""
         try:
             cmd = [
-                'yt-dlp',
+                sys.executable, '-m', 'yt_dlp',
                 '--flat-playlist',
                 '--dump-json',
                 '--no-warnings',
@@ -229,7 +230,7 @@ class AdvancedHarvester:
         """Attempt to download a video with specific settings."""
         try:
             cmd = [
-                'yt-dlp',
+                sys.executable, '-m', 'yt_dlp',
                 '-f', format_spec,
                 '--extract-audio',
                 '--audio-format', 'mp3',
@@ -446,25 +447,45 @@ class AdvancedHarvester:
         """Run as continuous daemon."""
         logging.info("Starting Project 5001 Advanced Harvester daemon")
         
+        # Create PID file
+        pid_file = Path("Project5001/harvester.pid")
+        pid_file.parent.mkdir(parents=True, exist_ok=True)
+        
+        try:
+            with open(pid_file, 'w') as f:
+                f.write(str(os.getpid()))
+            logging.info(f"Created PID file: {pid_file}")
+        except Exception as e:
+            logging.error(f"Failed to create PID file: {e}")
+        
         check_interval = self.config.get('check_interval', 3600)
         
-        while True:
+        try:
+            while True:
+                try:
+                    self.run_harvest_cycle()
+                    
+                    # Log rotation status
+                    rotation_status = self.rate_detector.get_rotation_status()
+                    logging.info(f"Rotation status: {rotation_status['available_devices']}/{rotation_status['total_devices']} devices available")
+                    
+                    logging.info(f"Sleeping for {check_interval} seconds")
+                    time.sleep(check_interval)
+                    
+                except KeyboardInterrupt:
+                    logging.info("Harvester stopped by user")
+                    break
+                except Exception as e:
+                    logging.error(f"Harvester error: {e}")
+                    time.sleep(60)  # Wait before retrying
+        finally:
+            # Clean up PID file
             try:
-                self.run_harvest_cycle()
-                
-                # Log rotation status
-                rotation_status = self.rate_detector.get_rotation_status()
-                logging.info(f"Rotation status: {rotation_status['available_devices']}/{rotation_status['total_devices']} devices available")
-                
-                logging.info(f"Sleeping for {check_interval} seconds")
-                time.sleep(check_interval)
-                
-            except KeyboardInterrupt:
-                logging.info("Harvester stopped by user")
-                break
+                if pid_file.exists():
+                    pid_file.unlink()
+                    logging.info("Removed PID file")
             except Exception as e:
-                logging.error(f"Harvester error: {e}")
-                time.sleep(60)  # Wait before retrying
+                logging.error(f"Failed to remove PID file: {e}")
 
 def main():
     """Main entry point."""

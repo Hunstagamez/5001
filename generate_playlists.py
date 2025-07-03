@@ -47,9 +47,9 @@ class PlaylistGenerator:
         cursor = conn.cursor()
         
         cursor.execute('''
-            SELECT id, title, artist, filename, ts 
+            SELECT id, title, artist, filename, download_date 
             FROM videos 
-            ORDER BY ts ASC
+            ORDER BY download_date ASC
         ''')
         
         tracks = []
@@ -59,7 +59,7 @@ class PlaylistGenerator:
                 'title': row[1],
                 'artist': row[2],
                 'filename': row[3],
-                'ts': row[4]
+                'ts': row[4]  # Keep 'ts' key for compatibility
             })
         
         conn.close()
@@ -73,10 +73,10 @@ class PlaylistGenerator:
         cutoff_date = datetime.now() - timedelta(days=days)
         
         cursor.execute('''
-            SELECT id, title, artist, filename, ts 
+            SELECT id, title, artist, filename, download_date 
             FROM videos 
-            WHERE ts >= ?
-            ORDER BY ts DESC
+            WHERE download_date >= ?
+            ORDER BY download_date DESC
         ''', (cutoff_date.isoformat(),))
         
         tracks = []
@@ -86,7 +86,7 @@ class PlaylistGenerator:
                 'title': row[1],
                 'artist': row[2],
                 'filename': row[3],
-                'ts': row[4]
+                'ts': row[4]  # Keep 'ts' key for compatibility
             })
         
         conn.close()
@@ -98,10 +98,10 @@ class PlaylistGenerator:
         cursor = conn.cursor()
         
         cursor.execute('''
-            SELECT id, title, artist, filename, ts 
+            SELECT id, title, artist, filename, download_date 
             FROM videos 
             WHERE artist LIKE ?
-            ORDER BY ts ASC
+            ORDER BY download_date ASC
         ''', (f'%{artist}%',))
         
         tracks = []
@@ -111,7 +111,7 @@ class PlaylistGenerator:
                 'title': row[1],
                 'artist': row[2],
                 'filename': row[3],
-                'ts': row[4]
+                'ts': row[4]  # Keep 'ts' key for compatibility
             })
         
         conn.close()
@@ -129,10 +129,10 @@ class PlaylistGenerator:
             end_date = datetime(year, month + 1, 1)
         
         cursor.execute('''
-            SELECT id, title, artist, filename, ts 
+            SELECT id, title, artist, filename, download_date 
             FROM videos 
-            WHERE ts >= ? AND ts < ?
-            ORDER BY ts ASC
+            WHERE download_date >= ? AND download_date < ?
+            ORDER BY download_date ASC
         ''', (start_date.isoformat(), end_date.isoformat()))
         
         tracks = []
@@ -142,7 +142,7 @@ class PlaylistGenerator:
                 'title': row[1],
                 'artist': row[2],
                 'filename': row[3],
-                'ts': row[4]
+                'ts': row[4]  # Keep 'ts' key for compatibility
             })
         
         conn.close()

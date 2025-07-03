@@ -140,17 +140,33 @@ class Project5001Initializer:
         """Start all Project 5001 services."""
         print("\n🚀 Starting Project 5001 services...")
         
-        # Start harvester daemon
+        # Start harvester daemon using manager
         print("Starting harvester daemon...")
         try:
-            harvester_process = subprocess.Popen([
-                sys.executable, 'harvester_v2.py', 'main', '--daemon'
-            ], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+            from harvester_manager import HarvesterManager
+            manager = HarvesterManager()
             
-            print(f"✅ Harvester started (PID: {harvester_process.pid})")
+            result = manager.start_harvester(daemon_mode=True)
             
-        except Exception as e:
-            print(f"❌ Failed to start harvester: {e}")
+            if result["success"]:
+                print(f"✅ Harvester started (PID: {result['pid']})")
+                print("\n📝 To view real-time logs in a new terminal:")
+                print("   python launch_log_viewer.py")
+                print("   (or manually: python view_harvester_logs.py)")
+            else:
+                print(f"❌ Failed to start harvester: {result['message']}")
+                
+        except ImportError:
+            # Fallback to old method
+            try:
+                harvester_process = subprocess.Popen([
+                    sys.executable, 'harvester_v2.py', 'main', '--daemon'
+                ], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+                
+                print(f"✅ Harvester started (PID: {harvester_process.pid})")
+                
+            except Exception as e:
+                print(f"❌ Failed to start harvester: {e}")
         
         # Generate initial playlists
         print("Generating initial playlists...")
@@ -162,27 +178,68 @@ class Project5001Initializer:
             print(f"❌ Failed to generate playlists: {e}")
         
         print("\n🎉 Project 5001 is now running!")
-        print("Use 'python cli.py' to manage the system")
-        print("Use 'python status.py' to check status")
+        print("Launching CLI interface...")
+        
+        # Launch the CLI interface
+        try:
+            import cli
+            cli.main()
+        except ImportError as e:
+            print(f"❌ Failed to launch CLI: {e}")
+            print("Use 'python cli.py' to manage the system manually")
+        except Exception as e:
+            print(f"❌ CLI error: {e}")
+            print("Use 'python cli.py' to manage the system manually")
     
     def stop_services(self):
         """Stop all Project 5001 services."""
         print("\n⏹️  Stopping Project 5001 services...")
         
         try:
-            # Find and stop harvester processes
-            result = subprocess.run(['pgrep', '-f', 'harvester_v2.py'], 
-                                  capture_output=True, text=True)
+            from harvester_manager import HarvesterManager
+            manager = HarvesterManager()
             
-            if result.returncode == 0:
-                pids = result.stdout.strip().split('\n')
-                for pid in pids:
-                    if pid:
-                        subprocess.run(['kill', pid])
-                        print(f"✅ Stopped harvester process {pid}")
+            result = manager.stop_harvester()
+            
+            if result["success"]:
+                print("✅ Harvester stopped successfully")
             else:
-                print("ℹ️  No harvester processes found")
+                print(f"❌ Failed to stop harvester: {result['message']}")
                 
+        except ImportError:
+            # Fallback to old method
+            try:
+                import platform
+                if platform.system() == "Windows":
+                    # Windows process termination
+                    result = subprocess.run(['tasklist', '/FI', 'IMAGENAME eq python.exe', '/FO', 'CSV'], 
+                                          capture_output=True, text=True)
+                    if result.returncode == 0 and 'harvester_v2.py' in result.stdout:
+                        # Find and kill Python processes running harvester_v2.py
+                        kill_result = subprocess.run(['taskkill', '/F', '/IM', 'python.exe'], 
+                                                   capture_output=True, text=True)
+                        if kill_result.returncode == 0:
+                            print("✅ Stopped harvester processes")
+                        else:
+                            print("⚠️  Failed to stop some processes")
+                    else:
+                        print("ℹ️  No harvester processes found")
+                else:
+                    # Unix/Linux process termination
+                    result = subprocess.run(['pgrep', '-f', 'harvester_v2.py'], 
+                                          capture_output=True, text=True)
+                    
+                    if result.returncode == 0:
+                        pids = result.stdout.strip().split('\n')
+                        for pid in pids:
+                            if pid:
+                                subprocess.run(['kill', pid])
+                                print(f"✅ Stopped harvester process {pid}")
+                    else:
+                        print("ℹ️  No harvester processes found")
+                    
+            except Exception as e:
+                print(f"❌ Failed to stop services: {e}")
         except Exception as e:
             print(f"❌ Failed to stop services: {e}")
     
