@@ -3,6 +3,8 @@
 python-dotenv>=1.0.0
 requests>=2.31.0
 mutagen>=1.47.0
+yt-dlp>=2023.7.6  # Fixed: essential for YouTube downloading
+psutil>=5.9.0     # Fixed: cross-platform process management
 
 # Optional: For enhanced audio processing
 # eyed3>=0.9.7  # Alternative to mutagen for MP3 tagging

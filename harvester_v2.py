@@ -11,6 +11,7 @@ import time
 import subprocess
 import requests
 import re
+import platform  # Added for cross-platform compatibility
 from datetime import datetime, timedelta
 from pathlib import Path
 from typing import List, Dict, Optional, Tuple
@@ -39,7 +40,7 @@ class AdvancedHarvester:
     def _initialize_device(self):
         """Initialize this device in the rotation pool."""
         device_id = self.config.get('syncthing.device_id')
-        device_name = f"{self.config.role}-{os.uname().nodename if hasattr(os, 'uname') else 'unknown'}"
+        device_name = f"{self.config.role}-{platform.node() if hasattr(platform, 'node') else 'unknown'}"
         device_type = self.config.role
         
         self.device_manager.register_device(device_id, device_name, device_type)
@@ -111,7 +112,7 @@ class AdvancedHarvester:
         return f"{next_num:05d}"
     
     def clean_title(self, title: str) -> str:
-        """Clean video title for filename."""
+        """Clean video title for filename with enhanced safety."""
         # Remove common YouTube suffixes
         suffixes = [
             r'\s*\[OFFICIAL VIDEO\]',
@@ -140,9 +141,19 @@ class AdvancedHarvester:
         for suffix in suffixes:
             cleaned = re.sub(suffix, '', cleaned, flags=re.IGNORECASE)
         
-        # Remove invalid filename characters
+        # Enhanced filename sanitization for cross-platform compatibility
+        # Remove/replace invalid filename characters for Windows/Unix
         cleaned = re.sub(r'[<>:"/\\|?*]', '', cleaned)
-        cleaned = cleaned.strip()
+        cleaned = re.sub(r'[\x00-\x1f\x7f-\x9f]', '', cleaned)  # Remove control characters
+        cleaned = re.sub(r'[^\w\s\-\.\(\)\[\]&]', '', cleaned)  # Keep only safe characters
+        cleaned = re.sub(r'\s+', ' ', cleaned)  # Normalize whitespace
+        cleaned = cleaned.strip('. ')  # Remove leading/trailing dots and spaces
+        
+        # Ensure filename isn't empty and isn't too long
+        if not cleaned:
+            cleaned = "Unknown_Title"
+        if len(cleaned) > 100:  # Limit filename length
+            cleaned = cleaned[:100].strip()
         
         return cleaned
     

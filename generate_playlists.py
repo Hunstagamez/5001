@@ -7,6 +7,7 @@ Generates smart playlists from harvested music files.
 import os
 import sqlite3
 import logging
+import re  # Added for filename sanitization
 from datetime import datetime, timedelta
 from pathlib import Path
 from typing import List, Dict
@@ -40,16 +41,34 @@ class PlaylistGenerator:
         # Create subdirectories
         (self.playlists_dir / 'ByMonth').mkdir(exist_ok=True)
         (self.playlists_dir / 'ByArtist').mkdir(exist_ok=True)
+        
+        # Check which date column exists in the database
+        self._date_column = self._get_date_column()
+    
+    def _get_date_column(self) -> str:
+        """Determine which date column exists in the database."""
+        try:
+            conn = sqlite3.connect(self.db_path)
+            cursor = conn.cursor()
+            cursor.execute('PRAGMA table_info(videos)')
+            columns = [row[1] for row in cursor.fetchall()]
+            conn.close()
+            
+            # Return appropriate column name based on what exists
+            return 'ts' if 'ts' in columns else 'download_date'
+        except Exception:
+            # Default to download_date for new databases
+            return 'download_date'
     
     def get_all_tracks(self) -> List[Dict]:
         """Get all tracks from database."""
         conn = sqlite3.connect(self.db_path)
         cursor = conn.cursor()
         
-        cursor.execute('''
-            SELECT id, title, artist, filename, ts 
+        cursor.execute(f'''
+            SELECT id, title, artist, filename, {self._date_column} 
             FROM videos 
-            ORDER BY ts ASC
+            ORDER BY {self._date_column} ASC
         ''')
         
         tracks = []
@@ -59,7 +78,7 @@ class PlaylistGenerator:
                 'title': row[1],
                 'artist': row[2],
                 'filename': row[3],
-                'ts': row[4]
+                'date': row[4]  # Fixed: unified date field name
             })
         
         conn.close()
@@ -72,11 +91,11 @@ class PlaylistGenerator:
         
         cutoff_date = datetime.now() - timedelta(days=days)
         
-        cursor.execute('''
-            SELECT id, title, artist, filename, ts 
+        cursor.execute(f'''
+            SELECT id, title, artist, filename, {self._date_column} 
             FROM videos 
-            WHERE ts >= ?
-            ORDER BY ts DESC
+            WHERE {self._date_column} >= ?
+            ORDER BY {self._date_column} DESC
         ''', (cutoff_date.isoformat(),))
         
         tracks = []
@@ -86,7 +105,7 @@ class PlaylistGenerator:
                 'title': row[1],
                 'artist': row[2],
                 'filename': row[3],
-                'ts': row[4]
+                'date': row[4]  # Fixed: unified date field name
             })
         
         conn.close()
@@ -97,11 +116,11 @@ class PlaylistGenerator:
         conn = sqlite3.connect(self.db_path)
         cursor = conn.cursor()
         
-        cursor.execute('''
-            SELECT id, title, artist, filename, ts 
+        cursor.execute(f'''
+            SELECT id, title, artist, filename, {self._date_column} 
             FROM videos 
             WHERE artist LIKE ?
-            ORDER BY ts ASC
+            ORDER BY {self._date_column} ASC
         ''', (f'%{artist}%',))
         
         tracks = []
@@ -111,7 +130,7 @@ class PlaylistGenerator:
                 'title': row[1],
                 'artist': row[2],
                 'filename': row[3],
-                'ts': row[4]
+                'date': row[4]  # Fixed: unified date field name
             })
         
         conn.close()
@@ -128,11 +147,11 @@ class PlaylistGenerator:
         else:
             end_date = datetime(year, month + 1, 1)
         
-        cursor.execute('''
-            SELECT id, title, artist, filename, ts 
+        cursor.execute(f'''
+            SELECT id, title, artist, filename, {self._date_column} 
             FROM videos 
-            WHERE ts >= ? AND ts < ?
-            ORDER BY ts ASC
+            WHERE {self._date_column} >= ? AND {self._date_column} < ?
+            ORDER BY {self._date_column} ASC
         ''', (start_date.isoformat(), end_date.isoformat()))
         
         tracks = []
@@ -142,7 +161,7 @@ class PlaylistGenerator:
                 'title': row[1],
                 'artist': row[2],
                 'filename': row[3],
-                'ts': row[4]
+                'date': row[4]  # Fixed: unified date field name
             })
         
         conn.close()
@@ -220,8 +239,12 @@ class PlaylistGenerator:
         for artist, track_count in artists:
             tracks = self.get_tracks_by_artist(artist)
             if tracks:
-                # Clean artist name for filename
-                safe_artist = "".join(c for c in artist if c.isalnum() or c in (' ', '-', '_')).rstrip()
+                # Enhanced artist name sanitization for cross-platform filenames
+                safe_artist = "".join(c for c in artist if c.isalnum() or c in (' ', '-', '_')).strip()
+                safe_artist = re.sub(r'\s+', ' ', safe_artist)  # Normalize whitespace
+                safe_artist = safe_artist[:50] if len(safe_artist) > 50 else safe_artist  # Limit length
+                safe_artist = safe_artist or "Unknown_Artist"  # Fallback for empty names
+                
                 playlist_path = self.playlists_dir / 'ByArtist' / f'{safe_artist}.m3u'
                 self.write_playlist(tracks, playlist_path, f"Project 5001 - {artist} ({track_count} tracks)")
     

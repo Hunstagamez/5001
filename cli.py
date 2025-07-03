@@ -10,6 +10,8 @@ import sys
 import subprocess
 import json
 import time
+import platform  # Added for cross-platform compatibility
+import psutil  # Cross-platform process utilities
 from pathlib import Path
 from typing import Dict, List, Optional
 import logging
@@ -210,16 +212,26 @@ class Project5001CLI:
         """Stop harvester daemon."""
         print("\n⏹️  Stopping Project 5001 Harvester...")
         try:
-            # Find harvester process
-            result = subprocess.run(['pgrep', '-f', 'harvester_v2.py'], 
-                                  capture_output=True, text=True)
+            # Find harvester processes (cross-platform)
+            harvester_processes = []
+            for proc in psutil.process_iter(['pid', 'name', 'cmdline']):
+                try:
+                    if 'harvester_v2.py' in ' '.join(proc.info['cmdline'] or []):
+                        harvester_processes.append(proc)
+                except (psutil.NoSuchProcess, psutil.AccessDenied):
+                    continue
             
-            if result.returncode == 0:
-                pids = result.stdout.strip().split('\n')
-                for pid in pids:
-                    if pid:
-                        subprocess.run(['kill', pid])
-                        print(f"✅ Stopped harvester process {pid}")
+            if harvester_processes:
+                for proc in harvester_processes:
+                    try:
+                        proc.terminate()  # Graceful termination
+                        proc.wait(timeout=5)  # Wait up to 5 seconds
+                        print(f"✅ Stopped harvester process {proc.pid}")
+                    except psutil.TimeoutExpired:
+                        proc.kill()  # Force kill if needed
+                        print(f"✅ Force stopped harvester process {proc.pid}")
+                    except Exception as e:
+                        print(f"⚠️  Could not stop process {proc.pid}: {e}")
             else:
                 print("ℹ️  No harvester processes found")
                 
@@ -265,12 +277,16 @@ class Project5001CLI:
             print(f"❌ Configuration test failed: {e}")
     
     def is_harvester_running(self) -> bool:
-        """Check if harvester process is running."""
+        """Check if harvester process is running (cross-platform)."""
         try:
-            result = subprocess.run(['pgrep', '-f', 'harvester_v2.py'], 
-                                  capture_output=True, text=True)
-            return result.returncode == 0
-        except:
+            for proc in psutil.process_iter(['pid', 'name', 'cmdline']):
+                try:
+                    if 'harvester_v2.py' in ' '.join(proc.info['cmdline'] or []):
+                        return True
+                except (psutil.NoSuchProcess, psutil.AccessDenied):
+                    continue
+            return False
+        except Exception:
             return False
     
     # Playlist Actions

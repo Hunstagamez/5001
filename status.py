@@ -34,9 +34,17 @@ class Project5001Status:
         cursor.execute('SELECT COUNT(*) FROM videos')
         total_tracks = cursor.fetchone()[0]
         
+        # Add compatibility layer for ts column name (legacy support)
+        # Check for both column names to handle different database versions
+        cursor.execute('PRAGMA table_info(videos)')
+        columns = [row[1] for row in cursor.fetchall()]
+        
+        # Use appropriate column name based on what exists
+        date_column = 'ts' if 'ts' in columns else 'download_date'
+        
         # Recent tracks (last 7 days)
         week_ago = (datetime.now() - timedelta(days=7)).isoformat()
-        cursor.execute('SELECT COUNT(*) FROM videos WHERE ts >= ?', (week_ago,))
+        cursor.execute(f'SELECT COUNT(*) FROM videos WHERE {date_column} >= ?', (week_ago,))
         recent_tracks = cursor.fetchone()[0]
         
         # Top artists
@@ -50,7 +58,7 @@ class Project5001Status:
         top_artists = cursor.fetchall()
         
         # Oldest and newest tracks
-        cursor.execute('SELECT MIN(ts), MAX(ts) FROM videos')
+        cursor.execute(f'SELECT MIN({date_column}), MAX({date_column}) FROM videos')
         oldest, newest = cursor.fetchone()
         
         conn.close()
