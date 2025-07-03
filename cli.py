@@ -723,10 +723,14 @@ class Project5001CLI:
         """Show setup instructions."""
         print("\n🔧 Setup Instructions:")
         print("1. Install dependencies: pip install -r requirements.txt")
-        print("2. Install ffmpeg and yt-dlp")
-        print("3. Run setup: python setup_project5001.py")
-        print("4. Configure Syncthing (if using distributed setup)")
-        print("5. Add YouTube cookies to cookies.txt")
+        print("2. Install ffmpeg:")
+        print("   Windows: winget install ffmpeg or download from ffmpeg.org")
+        print("   macOS: brew install ffmpeg")  
+        print("   Linux: sudo apt install ffmpeg")
+        print("3. Install yt-dlp: pip install yt-dlp")
+        print("4. Run setup: python setup_project5001.py")
+        print("5. Configure Syncthing (if using distributed setup)")
+        print("6. Add YouTube cookies to cookies.txt")
         print("\nSee README.md for full setup guide")
     
     def show_available_commands(self):

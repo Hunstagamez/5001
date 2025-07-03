@@ -22,15 +22,23 @@ def print_banner():
     print()
 
 def check_ffmpeg() -> str:
-    """Ensure ffmpeg is available in system PATH."""
+    """Check if ffmpeg is available in system PATH."""
     ffmpeg_path = shutil.which('ffmpeg')
     if ffmpeg_path:
         print(f"✅ ffmpeg found: {ffmpeg_path}")
         return ffmpeg_path
     else:
-        print("❌ ffmpeg not found. Please install ffmpeg using your package manager.")
-        print("   On Ubuntu/Debian: sudo apt install ffmpeg")
-        print("   On CentOS/RHEL: sudo yum install ffmpeg")
+        print("⚠️  ffmpeg not found in system PATH")
+        print("   This is required for audio conversion during downloads.")
+        print()
+        print("📥 Installation instructions:")
+        print("   Windows: Download from https://ffmpeg.org/download.html")
+        print("           Or use: winget install ffmpeg")
+        print("           Or use: scoop install ffmpeg")
+        print("   macOS:   brew install ffmpeg")
+        print("   Ubuntu/Debian: sudo apt install ffmpeg")
+        print("   CentOS/RHEL: sudo yum install ffmpeg")
+        print()
         return ''
 
 def check_dependencies() -> bool:
@@ -77,8 +85,16 @@ def check_dependencies() -> bool:
     # Check ffmpeg
     ffmpeg_path = check_ffmpeg()
     if not ffmpeg_path:
-        print("❌ ffmpeg is required. Please install it and re-run setup.")
-        return False
+        print("⚠️  WARNING: ffmpeg not found!")
+        print("   Downloads will fail without ffmpeg for audio conversion.")
+        print("   You can continue setup and install ffmpeg later.")
+        print()
+        choice = input("Continue setup without ffmpeg? (y/N): ").strip().lower()
+        if choice not in ('y', 'yes'):
+            print("Setup cancelled. Please install ffmpeg and try again.")
+            return False
+        print("✅ Continuing setup without ffmpeg (install it before downloading)")
+        print()
     
     return True
 

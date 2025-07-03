@@ -196,6 +196,13 @@ python initialiser.py --status
 pip install yt-dlp
 ```
 
+**ffmpeg not found:**
+- **Windows**: Download from https://ffmpeg.org/download.html and add to PATH
+  - Or use: `winget install ffmpeg`
+  - Or use: `scoop install ffmpeg`
+- **macOS**: `brew install ffmpeg`
+- **Linux**: `sudo apt install ffmpeg` (Ubuntu/Debian) or `sudo yum install ffmpeg` (CentOS/RHEL)
+
 **Syncthing API errors:**
 ```bash
 # Check if Syncthing is running

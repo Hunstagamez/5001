@@ -118,10 +118,12 @@ This report documents the cleanup analysis and optimizations for Project 5001, a
      - Consolidated `requests`, `sys`, and `json` imports to top of file
      - Removed redundant import blocks at lines 168-169 and 299-302
      - Improved import organization
-   - ✅ **Removed binary files and updated `.gitignore`**
+   - ✅ **Removed binary files and improved Windows support**
      - Deleted `ffmpeg.exe` (88MB) and `ffprobe.exe` (88MB)  
+     - **FIXED**: Added Windows installation instructions to setup script
+     - **FIXED**: Made ffmpeg optional during setup (with warnings)
+     - Updated documentation with Windows-specific guidance
      - Updated `.gitignore` to explicitly exclude ffmpeg binaries
-     - Prevents accidental re-addition of large binaries
    - ✅ **Removed redundant wrapper script**
      - Deleted `start_main_node.py` (11 lines)
      - Functionality preserved in `harvester_v2.py` and `cli.py`
