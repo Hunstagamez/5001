@@ -10,6 +10,8 @@ import sys
 import subprocess
 import time
 import json
+import platform  # Added for cross-platform compatibility
+import psutil  # Cross-platform process utilities (add to requirements)
 from pathlib import Path
 from typing import Dict, List, Optional
 
@@ -209,34 +211,28 @@ class Project5001Initializer:
         except ImportError:
             # Fallback to old method
             try:
-                import platform
-                if platform.system() == "Windows":
-                    # Windows process termination
-                    result = subprocess.run(['tasklist', '/FI', 'IMAGENAME eq python.exe', '/FO', 'CSV'], 
-                                          capture_output=True, text=True)
-                    if result.returncode == 0 and 'harvester_v2.py' in result.stdout:
-                        # Find and kill Python processes running harvester_v2.py
-                        kill_result = subprocess.run(['taskkill', '/F', '/IM', 'python.exe'], 
-                                                   capture_output=True, text=True)
-                        if kill_result.returncode == 0:
-                            print("✅ Stopped harvester processes")
-                        else:
-                            print("⚠️  Failed to stop some processes")
-                    else:
-                        print("ℹ️  No harvester processes found")
+                # Find and stop harvester processes (cross-platform)
+                harvester_processes = []
+                for proc in psutil.process_iter(['pid', 'name', 'cmdline']):
+                    try:
+                        if 'harvester_v2.py' in ' '.join(proc.info['cmdline'] or []):
+                            harvester_processes.append(proc)
+                    except (psutil.NoSuchProcess, psutil.AccessDenied):
+                        continue
+                
+                if harvester_processes:
+                    for proc in harvester_processes:
+                        try:
+                            proc.terminate()  # Graceful termination
+                            proc.wait(timeout=5)  # Wait up to 5 seconds
+                            print(f"✅ Stopped harvester process {proc.pid}")
+                        except psutil.TimeoutExpired:
+                            proc.kill()  # Force kill if needed
+                            print(f"✅ Force stopped harvester process {proc.pid}")
+                        except Exception as e:
+                            print(f"⚠️  Could not stop process {proc.pid}: {e}")
                 else:
-                    # Unix/Linux process termination
-                    result = subprocess.run(['pgrep', '-f', 'harvester_v2.py'], 
-                                          capture_output=True, text=True)
-                    
-                    if result.returncode == 0:
-                        pids = result.stdout.strip().split('\n')
-                        for pid in pids:
-                            if pid:
-                                subprocess.run(['kill', pid])
-                                print(f"✅ Stopped harvester process {pid}")
-                    else:
-                        print("ℹ️  No harvester processes found")
+                    print("ℹ️  No harvester processes found")
                     
             except Exception as e:
                 print(f"❌ Failed to stop services: {e}")

@@ -10,6 +10,8 @@ import sys
 import subprocess
 import json
 import time
+import platform  # Added for cross-platform compatibility
+import psutil  # Cross-platform process utilities
 from pathlib import Path
 from typing import Dict, List, Optional
 import logging
@@ -68,8 +70,7 @@ class Project5001CLI:
             {"id": "5", "title": "⚙️  Configuration", "action": self.config_menu},
             {"id": "6", "title": "📝 Logs & Debugging", "action": self.logs_menu},
             {"id": "7", "title": "🔄 Syncthing Operations", "action": self.syncthing_menu},
-            {"id": "8", "title": "🍪 Cookie Management", "action": self.cookie_menu},
-            {"id": "9", "title": "❓ Help & Documentation", "action": self.help_menu},
+            {"id": "8", "title": "❓ Help & Documentation", "action": self.help_menu},
             {"id": "0", "title": "🚪 Exit", "action": self.exit_cli}
         ]
     
@@ -114,8 +115,7 @@ class Project5001CLI:
                 {"id": "1", "title": "▶️  Start Harvester (Daemon)", "action": self.start_harvester_daemon},
                 {"id": "2", "title": "🔄 Run Single Harvest Cycle", "action": self.run_single_harvest},
                 {"id": "3", "title": "📊 Harvester Status", "action": self.check_harvester_status},
-                {"id": "4", "title": "🔧 Test Configuration", "action": self.test_harvester_config},
-                {"id": "5", "title": "📋 Manage YouTube Playlists", "action": self.youtube_playlist_menu}
+                {"id": "4", "title": "🔧 Test Configuration", "action": self.test_harvester_config}
             ]
         else:
             # Harvester is running - show stop and monitoring options
@@ -123,8 +123,7 @@ class Project5001CLI:
                 {"id": "1", "title": "⏸️  Stop Harvester", "action": self.stop_harvester},
                 {"id": "2", "title": "📊 Harvester Status", "action": self.check_harvester_status},
                 {"id": "3", "title": "👁️  View Real-time Logs", "action": self.view_realtime_logs},
-                {"id": "4", "title": "🔧 Test Configuration", "action": self.test_harvester_config},
-                {"id": "5", "title": "📋 Manage YouTube Playlists", "action": self.youtube_playlist_menu}
+                {"id": "4", "title": "🔧 Test Configuration", "action": self.test_harvester_config}
             ]
     
     def playlist_menu(self):
@@ -138,6 +137,7 @@ class Project5001CLI:
             {"id": "6", "title": "⭐ Favorites Playlist", "action": self.generate_favorites_playlist},
             {"id": "7", "title": "📂 List Existing Playlists", "action": self.list_playlists}
         ]
+        
         self.show_menu("📋 Playlist Management", options, self.main_menu)
     
     def status_menu(self):
@@ -150,6 +150,7 @@ class Project5001CLI:
             {"id": "5", "title": "🎤 Top Artists", "action": self.show_top_artists},
             {"id": "6", "title": "📊 JSON Status Output", "action": self.show_json_status}
         ]
+        
         self.show_menu("📊 System Status", options, self.main_menu)
     
     def file_menu(self):
@@ -160,6 +161,7 @@ class Project5001CLI:
             {"id": "3", "title": "🧹 Clean Orphaned Files", "action": self.clean_orphaned_files},
             {"id": "4", "title": "📊 Storage Analysis", "action": self.storage_analysis}
         ]
+        
         self.show_menu("📁 File Operations", options, self.main_menu)
     
     def config_menu(self):
@@ -170,6 +172,7 @@ class Project5001CLI:
             {"id": "3", "title": "🔄 Reload Configuration", "action": self.reload_config},
             {"id": "4", "title": "📋 Validate Configuration", "action": self.validate_config}
         ]
+        
         self.show_menu("⚙️  Configuration", options, self.main_menu)
     
     def logs_menu(self):
@@ -180,6 +183,7 @@ class Project5001CLI:
             {"id": "3", "title": "📊 Log Statistics", "action": self.log_statistics},
             {"id": "4", "title": "🧹 Clear Old Logs", "action": self.clear_old_logs}
         ]
+        
         self.show_menu("📝 Logs & Debugging", options, self.main_menu)
     
     def syncthing_menu(self):
@@ -189,17 +193,8 @@ class Project5001CLI:
             {"id": "2", "title": "📊 Sync Status", "action": self.show_sync_status},
             {"id": "3", "title": "🔗 Test Connection", "action": self.test_syncthing_connection}
         ]
+        
         self.show_menu("🔄 Syncthing Operations", options, self.main_menu)
-    
-    def cookie_menu(self):
-        """Cookie management menu."""
-        options = [
-            {"id": "1", "title": "🔍 Extract Cookies Automatically", "action": self.extract_cookies},
-            {"id": "2", "title": "🧪 Test Current Cookies", "action": self.test_current_cookies},
-            {"id": "3", "title": "📋 Show Cookie Instructions", "action": self.show_cookie_instructions},
-            {"id": "4", "title": "📁 View Current Cookies", "action": self.view_current_cookies}
-        ]
-        self.show_menu("🍪 Cookie Management", options, self.main_menu)
     
     def help_menu(self):
         """Help and documentation menu."""
@@ -209,6 +204,7 @@ class Project5001CLI:
             {"id": "3", "title": "📋 Available Commands", "action": self.show_available_commands},
             {"id": "4", "title": "❓ Troubleshooting", "action": self.show_troubleshooting}
         ]
+        
         self.show_menu("❓ Help & Documentation", options, self.main_menu)
     
     # Harvester Actions
@@ -348,20 +344,14 @@ class Project5001CLI:
         
         # Fallback to old method if manager not available
         try:
-            import platform
-            if platform.system() == "Windows":
-                # Windows process detection
-                result = subprocess.run(['tasklist', '/FI', 'IMAGENAME eq python.exe', '/FO', 'CSV'], 
-                                      capture_output=True, text=True)
-                if result.returncode == 0:
-                    return 'harvester_v2.py' in result.stdout
-                return False
-            else:
-                # Unix/Linux process detection
-                result = subprocess.run(['pgrep', '-f', 'harvester_v2.py'], 
-                                      capture_output=True, text=True)
-                return result.returncode == 0
-        except:
+            for proc in psutil.process_iter(['pid', 'name', 'cmdline']):
+                try:
+                    if 'harvester_v2.py' in ' '.join(proc.info['cmdline'] or []):
+                        return True
+                except (psutil.NoSuchProcess, psutil.AccessDenied):
+                    continue
+            return False
+        except Exception:
             return False
     
     # Playlist Actions
@@ -759,111 +749,6 @@ class Project5001CLI:
         print("4. Database errors: Check file permissions")
         print("\nCheck logs in Project5001/Logs/ for detailed error messages")
     
-    def extract_cookies(self):
-        """Extract YouTube cookies automatically."""
-        print("\n🍪 YouTube Cookie Extraction")
-        print("This will automatically extract YouTube cookies from your browsers.")
-        
-        try:
-            # Import and run the cookie automation tool
-            import subprocess
-            result = subprocess.run([sys.executable, 'cookie_automator.py'], 
-                                  capture_output=True, text=True)
-            
-            if result.returncode == 0:
-                print("✅ Cookie extraction completed successfully!")
-                print("Your Project 5001 system should now work with fresh cookies.")
-            else:
-                print("❌ Cookie extraction failed:")
-                print(result.stderr)
-                print("\n💡 Alternative methods:")
-                print("1. Use the browser extension: copy cookie_extension.js to browser console")
-                print("2. Manual extraction: Follow instructions in cookies.example.txt")
-                
-        except Exception as e:
-            print(f"❌ Cookie extraction error: {e}")
-            print("\n💡 Try running manually: python cookie_automator.py")
-    
-    def test_current_cookies(self):
-        """Test if current cookies work."""
-        print("\n🧪 Testing current cookies...")
-        
-        if not Path("cookies.txt").exists():
-            print("❌ No cookies.txt file found")
-            return
-        
-        try:
-            import subprocess
-            result = subprocess.run([
-                sys.executable, '-m', 'yt_dlp',
-                '--cookies', 'cookies.txt',
-                '--extract-audio',
-                '--audio-format', 'mp3',
-                '--audio-quality', '96k',
-                '--output', 'test_cookies.mp3',
-                '--no-warnings',
-                'https://www.youtube.com/watch?v=dQw4w9WgXcQ'
-            ], capture_output=True, text=True, timeout=60)
-            
-            if result.returncode == 0 and Path("test_cookies.mp3").exists():
-                print("✅ Current cookies are working!")
-                Path("test_cookies.mp3").unlink()  # Clean up
-            else:
-                print("❌ Current cookies are not working")
-                print("Error:", result.stderr)
-                
-        except Exception as e:
-            print(f"❌ Cookie test error: {e}")
-    
-    def show_cookie_instructions(self):
-        """Show cookie extraction instructions."""
-        print("\n📋 Cookie Extraction Instructions:")
-        print("=" * 50)
-        print("Method 1: Automatic Extraction (Recommended)")
-        print("1. Make sure you're logged into YouTube in Chrome/Edge/Firefox")
-        print("2. Run: python cookie_automator.py")
-        print("3. The tool will automatically extract and test cookies")
-        print()
-        print("Method 2: Browser Extension")
-        print("1. Go to YouTube and log in")
-        print("2. Open browser DevTools (F12)")
-        print("3. Copy and paste the contents of cookie_extension.js")
-        print("4. Press Enter to run the script")
-        print("5. Click the red download button that appears")
-        print()
-        print("Method 3: Manual Extraction")
-        print("1. Go to YouTube and log in")
-        print("2. Open browser DevTools (F12)")
-        print("3. Go to Application/Storage → Cookies → youtube.com")
-        print("4. Copy the required cookies manually")
-        print("5. Follow the format in cookies.example.txt")
-    
-    def view_current_cookies(self):
-        """View current cookies file."""
-        print("\n📁 Current Cookies File:")
-        print("=" * 30)
-        
-        if not Path("cookies.txt").exists():
-            print("❌ No cookies.txt file found")
-            return
-        
-        try:
-            with open("cookies.txt", 'r') as f:
-                content = f.read()
-                lines = content.split('\n')
-                print(f"Total lines: {len(lines)}")
-                print(f"File size: {len(content)} bytes")
-                print()
-                print("First 10 lines:")
-                for i, line in enumerate(lines[:10]):
-                    if line.strip():
-                        print(f"{i+1:2d}: {line}")
-                if len(lines) > 10:
-                    print(f"... and {len(lines) - 10} more lines")
-                    
-        except Exception as e:
-            print(f"❌ Error reading cookies file: {e}")
-    
     def main_menu(self):
         """Show main menu."""
         self.show_menu("🎧 Project 5001 - Main Menu", self.get_main_menu())
@@ -873,231 +758,6 @@ class Project5001CLI:
         print("\n👋 Thanks for using Project 5001!")
         print("Keep fighting the good fight against playlist limits! 🎧")
         sys.exit(0)
-
-    def youtube_playlist_menu(self):
-        """YouTube playlist management menu."""
-        options = [
-            {"id": "1", "title": "📋 List Current Playlists", "action": self.list_youtube_playlists},
-            {"id": "2", "title": "➕ Add YouTube Playlist", "action": self.add_youtube_playlist},
-            {"id": "3", "title": "➖ Remove YouTube Playlist", "action": self.remove_youtube_playlist},
-            {"id": "4", "title": "🔍 Test Playlist URL", "action": self.test_youtube_playlist},
-            {"id": "5", "title": "📊 Playlist Statistics", "action": self.youtube_playlist_stats}
-        ]
-        self.show_menu("📋 YouTube Playlist Management", options, self.harvester_menu)
-    
-    # YouTube Playlist Management Actions
-    def list_youtube_playlists(self):
-        """List all YouTube playlists currently being monitored."""
-        print("\n📋 Current YouTube Playlists:")
-        try:
-            config = NodeConfig('main')
-            playlist_urls = config.get('playlist_urls', [])
-            
-            if not playlist_urls:
-                print("ℹ️  No YouTube playlists configured")
-                return
-            
-            for i, url in enumerate(playlist_urls, 1):
-                print(f"  {i}. {url}")
-                
-                # Try to get playlist info
-                try:
-                    playlist_info = self.get_playlist_info(url)
-                    if playlist_info:
-                        print(f"     📝 Title: {playlist_info.get('title', 'Unknown')}")
-                        print(f"     👤 Channel: {playlist_info.get('uploader', 'Unknown')}")
-                        print(f"     📊 Videos: {playlist_info.get('video_count', 'Unknown')}")
-                except Exception as e:
-                    print(f"     ⚠️  Could not fetch playlist info: {e}")
-                print()
-                
-        except Exception as e:
-            print(f"❌ Failed to list playlists: {e}")
-    
-    def add_youtube_playlist(self):
-        """Add a new YouTube playlist to monitor."""
-        print("\n➕ Add YouTube Playlist")
-        print("Enter a YouTube playlist URL to start monitoring:")
-        
-        url = input("Playlist URL: ").strip()
-        if not url:
-            print("❌ No URL provided")
-            return
-        
-        # Validate URL format
-        if 'youtube.com/playlist' not in url:
-            print("❌ Please enter a valid YouTube playlist URL")
-            return
-        
-        try:
-            config = NodeConfig('main')
-            playlist_urls = config.get('playlist_urls', [])
-            
-            # Check if already exists
-            if url in playlist_urls:
-                print("⚠️  This playlist is already being monitored")
-                return
-            
-            # Test the playlist URL
-            print("🔍 Testing playlist URL...")
-            playlist_info = self.get_playlist_info(url)
-            if not playlist_info:
-                print("❌ Could not access playlist. Please check the URL and try again.")
-                return
-            
-            # Add to configuration
-            playlist_urls.append(url)
-            config.set('playlist_urls', playlist_urls)
-            config.save_config()
-            
-            print("✅ Playlist added successfully!")
-            print(f"📝 Title: {playlist_info.get('title', 'Unknown')}")
-            print(f"👤 Channel: {playlist_info.get('uploader', 'Unknown')}")
-            print(f"📊 Videos: {playlist_info.get('video_count', 'Unknown')}")
-            
-        except Exception as e:
-            print(f"❌ Failed to add playlist: {e}")
-    
-    def remove_youtube_playlist(self):
-        """Remove a YouTube playlist from monitoring."""
-        print("\n➖ Remove YouTube Playlist")
-        try:
-            config = NodeConfig('main')
-            playlist_urls = config.get('playlist_urls', [])
-            
-            if not playlist_urls:
-                print("ℹ️  No playlists configured")
-                return
-            
-            print("Current playlists:")
-            for i, url in enumerate(playlist_urls, 1):
-                print(f"  {i}. {url}")
-            
-            choice = input("\nEnter playlist number to remove (or 'cancel'): ").strip()
-            if choice.lower() == 'cancel':
-                return
-            
-            try:
-                index = int(choice) - 1
-                if 0 <= index < len(playlist_urls):
-                    removed_url = playlist_urls.pop(index)
-                    config.set('playlist_urls', playlist_urls)
-                    config.save_config()
-                    print(f"✅ Removed playlist: {removed_url}")
-                else:
-                    print("❌ Invalid playlist number")
-            except ValueError:
-                print("❌ Please enter a valid number")
-                
-        except Exception as e:
-            print(f"❌ Failed to remove playlist: {e}")
-    
-    def test_youtube_playlist(self):
-        """Test a YouTube playlist URL to see if it's accessible."""
-        print("\n🔍 Test YouTube Playlist URL")
-        url = input("Enter playlist URL to test: ").strip()
-        
-        if not url:
-            print("❌ No URL provided")
-            return
-        
-        if 'youtube.com/playlist' not in url:
-            print("❌ Please enter a valid YouTube playlist URL")
-            return
-        
-        print("🔍 Testing playlist...")
-        try:
-            playlist_info = self.get_playlist_info(url)
-            if playlist_info:
-                print("✅ Playlist is accessible!")
-                print(f"📝 Title: {playlist_info.get('title', 'Unknown')}")
-                print(f"👤 Channel: {playlist_info.get('uploader', 'Unknown')}")
-                print(f"📊 Videos: {playlist_info.get('video_count', 'Unknown')}")
-                print(f"🔗 URL: {url}")
-            else:
-                print("❌ Could not access playlist")
-        except Exception as e:
-            print(f"❌ Error testing playlist: {e}")
-    
-    def youtube_playlist_stats(self):
-        """Show statistics for all monitored YouTube playlists."""
-        print("\n📊 YouTube Playlist Statistics")
-        try:
-            config = NodeConfig('main')
-            playlist_urls = config.get('playlist_urls', [])
-            
-            if not playlist_urls:
-                print("ℹ️  No playlists configured")
-                return
-            
-            total_videos = 0
-            accessible_playlists = 0
-            
-            for i, url in enumerate(playlist_urls, 1):
-                print(f"\n📋 Playlist {i}: {url}")
-                try:
-                    playlist_info = self.get_playlist_info(url)
-                    if playlist_info:
-                        accessible_playlists += 1
-                        video_count = playlist_info.get('video_count', 0)
-                        total_videos += video_count
-                        print(f"   ✅ Accessible")
-                        print(f"   📝 Title: {playlist_info.get('title', 'Unknown')}")
-                        print(f"   👤 Channel: {playlist_info.get('uploader', 'Unknown')}")
-                        print(f"   📊 Videos: {video_count}")
-                    else:
-                        print(f"   ❌ Not accessible")
-                except Exception as e:
-                    print(f"   ❌ Error: {e}")
-            
-            print(f"\n📈 Summary:")
-            print(f"   Total playlists: {len(playlist_urls)}")
-            print(f"   Accessible playlists: {accessible_playlists}")
-            print(f"   Total videos: {total_videos}")
-            
-        except Exception as e:
-            print(f"❌ Failed to get playlist statistics: {e}")
-    
-    def get_playlist_info(self, playlist_url: str) -> dict:
-        """Get information about a YouTube playlist."""
-        try:
-            import subprocess
-            import json
-            
-            cmd = [
-                sys.executable, '-m', 'yt_dlp',
-                '--flat-playlist',
-                '--dump-json',
-                '--no-warnings',
-                '--playlist-items', '1',  # Just get first video for playlist info
-                playlist_url
-            ]
-            
-            result = subprocess.run(cmd, capture_output=True, text=True, timeout=30)
-            
-            if result.returncode != 0:
-                return None
-            
-            # Parse the first video to get playlist info
-            lines = result.stdout.strip().split('\n')
-            if not lines or not lines[0]:
-                return None
-            
-            video_data = json.loads(lines[0])
-            
-            # Get playlist info from the video data
-            playlist_info = {
-                'title': video_data.get('playlist_title', 'Unknown'),
-                'uploader': video_data.get('playlist_uploader', 'Unknown'),
-                'video_count': video_data.get('playlist_count', 0),
-                'playlist_id': video_data.get('playlist_id', 'Unknown')
-            }
-            
-            return playlist_info
-            
-        except Exception as e:
-            logging.error(f"Failed to get playlist info for {playlist_url}: {e}")
-            return None
 
 def main():
     """Main entry point."""
