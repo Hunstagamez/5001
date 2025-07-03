@@ -27,10 +27,31 @@ def check_ffmpeg() -> str:
     if ffmpeg_path:
         print(f"✅ ffmpeg found: {ffmpeg_path}")
         return ffmpeg_path
-    else:
-        print("❌ ffmpeg not found. Please install ffmpeg using your package manager.")
-        print("   On Ubuntu/Debian: sudo apt install ffmpeg")
-        print("   On CentOS/RHEL: sudo yum install ffmpeg")
+    
+    print("❌ ffmpeg not found. Installing automatically...")
+    
+    try:
+        from ffmpeg_installer import FFmpegInstaller
+        installer = FFmpegInstaller()
+        
+        if installer.install_ffmpeg():
+            # Check again after installation
+            new_path = shutil.which('ffmpeg')
+            if new_path:
+                print(f"✅ ffmpeg installed and found: {new_path}")
+                return new_path
+        
+        print("❌ Automatic installation failed. Please install ffmpeg manually:")
+        print("   - Windows: Download from https://ffmpeg.org/download.html")
+        print("   - Linux: Use your package manager (apt, yum, etc.)")
+        print("   - macOS: Use Homebrew (brew install ffmpeg)")
+        return ''
+        
+    except ImportError:
+        print("❌ ffmpeg_installer not available. Please install ffmpeg manually:")
+        print("   - Windows: Download from https://ffmpeg.org/download.html")
+        print("   - Linux: Use your package manager (apt, yum, etc.)")
+        print("   - macOS: Use Homebrew (brew install ffmpeg)")
         return ''
 
 def check_dependencies() -> bool:

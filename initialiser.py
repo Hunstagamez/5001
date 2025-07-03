@@ -100,6 +100,26 @@ class Project5001Initializer:
         except ImportError as e:
             print(f"❌ Dependencies: Missing {e}")
         
+        # Check ffmpeg
+        try:
+            ffmpeg_path = shutil.which('ffmpeg')
+            if ffmpeg_path:
+                print(f"✅ FFmpeg: {ffmpeg_path}")
+            else:
+                print("❌ FFmpeg: Not found")
+                print("   Installing automatically...")
+                try:
+                    from ffmpeg_installer import FFmpegInstaller
+                    installer = FFmpegInstaller()
+                    if installer.install_ffmpeg():
+                        print("✅ FFmpeg: Installed successfully")
+                    else:
+                        print("❌ FFmpeg: Automatic installation failed")
+                except ImportError:
+                    print("❌ FFmpeg: Installer not available")
+        except Exception as e:
+            print(f"❌ FFmpeg: {e}")
+        
         # Check Syncthing
         try:
             syncthing_status = self.status_checker.check_syncthing_status()
@@ -142,33 +162,17 @@ class Project5001Initializer:
         """Start all Project 5001 services."""
         print("\n🚀 Starting Project 5001 services...")
         
-        # Start harvester daemon using manager
+        # Start harvester daemon
         print("Starting harvester daemon...")
         try:
-            from harvester_manager import HarvesterManager
-            manager = HarvesterManager()
+            harvester_process = subprocess.Popen([
+                sys.executable, 'harvester_v2.py', 'main', '--daemon'
+            ], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
             
-            result = manager.start_harvester(daemon_mode=True)
+            print(f"✅ Harvester started (PID: {harvester_process.pid})")
             
-            if result["success"]:
-                print(f"✅ Harvester started (PID: {result['pid']})")
-                print("\n📝 To view real-time logs in a new terminal:")
-                print("   python launch_log_viewer.py")
-                print("   (or manually: python view_harvester_logs.py)")
-            else:
-                print(f"❌ Failed to start harvester: {result['message']}")
-                
-        except ImportError:
-            # Fallback to old method
-            try:
-                harvester_process = subprocess.Popen([
-                    sys.executable, 'harvester_v2.py', 'main', '--daemon'
-                ], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-                
-                print(f"✅ Harvester started (PID: {harvester_process.pid})")
-                
-            except Exception as e:
-                print(f"❌ Failed to start harvester: {e}")
+        except Exception as e:
+            print(f"❌ Failed to start harvester: {e}")
         
         # Generate initial playlists
         print("Generating initial playlists...")
@@ -180,62 +184,37 @@ class Project5001Initializer:
             print(f"❌ Failed to generate playlists: {e}")
         
         print("\n🎉 Project 5001 is now running!")
-        print("Launching CLI interface...")
-        
-        # Launch the CLI interface
-        try:
-            import cli
-            cli.main()
-        except ImportError as e:
-            print(f"❌ Failed to launch CLI: {e}")
-            print("Use 'python cli.py' to manage the system manually")
-        except Exception as e:
-            print(f"❌ CLI error: {e}")
-            print("Use 'python cli.py' to manage the system manually")
+        print("Use 'python cli.py' to manage the system")
+        print("Use 'python status.py' to check status")
     
     def stop_services(self):
         """Stop all Project 5001 services."""
         print("\n⏹️  Stopping Project 5001 services...")
         
         try:
-            from harvester_manager import HarvesterManager
-            manager = HarvesterManager()
+            # Find and stop harvester processes (cross-platform)
+            harvester_processes = []
+            for proc in psutil.process_iter(['pid', 'name', 'cmdline']):
+                try:
+                    if 'harvester_v2.py' in ' '.join(proc.info['cmdline'] or []):
+                        harvester_processes.append(proc)
+                except (psutil.NoSuchProcess, psutil.AccessDenied):
+                    continue
             
-            result = manager.stop_harvester()
-            
-            if result["success"]:
-                print("✅ Harvester stopped successfully")
-            else:
-                print(f"❌ Failed to stop harvester: {result['message']}")
-                
-        except ImportError:
-            # Fallback to old method
-            try:
-                # Find and stop harvester processes (cross-platform)
-                harvester_processes = []
-                for proc in psutil.process_iter(['pid', 'name', 'cmdline']):
+            if harvester_processes:
+                for proc in harvester_processes:
                     try:
-                        if 'harvester_v2.py' in ' '.join(proc.info['cmdline'] or []):
-                            harvester_processes.append(proc)
-                    except (psutil.NoSuchProcess, psutil.AccessDenied):
-                        continue
+                        proc.terminate()  # Graceful termination
+                        proc.wait(timeout=5)  # Wait up to 5 seconds
+                        print(f"✅ Stopped harvester process {proc.pid}")
+                    except psutil.TimeoutExpired:
+                        proc.kill()  # Force kill if needed
+                        print(f"✅ Force stopped harvester process {proc.pid}")
+                    except Exception as e:
+                        print(f"⚠️  Could not stop process {proc.pid}: {e}")
+            else:
+                print("ℹ️  No harvester processes found")
                 
-                if harvester_processes:
-                    for proc in harvester_processes:
-                        try:
-                            proc.terminate()  # Graceful termination
-                            proc.wait(timeout=5)  # Wait up to 5 seconds
-                            print(f"✅ Stopped harvester process {proc.pid}")
-                        except psutil.TimeoutExpired:
-                            proc.kill()  # Force kill if needed
-                            print(f"✅ Force stopped harvester process {proc.pid}")
-                        except Exception as e:
-                            print(f"⚠️  Could not stop process {proc.pid}: {e}")
-                else:
-                    print("ℹ️  No harvester processes found")
-                    
-            except Exception as e:
-                print(f"❌ Failed to stop services: {e}")
         except Exception as e:
             print(f"❌ Failed to stop services: {e}")
     
