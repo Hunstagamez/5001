@@ -40,7 +40,14 @@ class AdvancedHarvester:
     def _initialize_device(self):
         """Initialize this device in the rotation pool."""
         device_id = self.config.get('syncthing.device_id')
-        device_name = f"{self.config.role}-{platform.node() if hasattr(platform, 'node') else 'unknown'}"
+        # Fixed: Proper platform.node() error handling - platform.node() exists but can fail
+        try:
+            hostname = platform.node()
+            if not hostname:  # Can return empty string
+                hostname = 'unknown'
+        except Exception:  # Can raise OSError on some systems
+            hostname = 'unknown'
+        device_name = f"{self.config.role}-{hostname}"
         device_type = self.config.role
         
         self.device_manager.register_device(device_id, device_name, device_type)
@@ -253,9 +260,19 @@ class AdvancedHarvester:
                 f'https://www.youtube.com/watch?v={video_id}'
             ]
             # Add cookies.txt if it exists
-            if Path('cookies.txt').exists():
-                cmd.insert(1, '--cookies')
-                cmd.insert(2, 'cookies.txt')
+            cookies_file = Path('cookies.txt')
+            if cookies_file.exists() and cookies_file.stat().st_size > 0:
+                # Fixed: Better cookie file validation
+                try:
+                    cmd.insert(1, '--cookies')
+                    cmd.insert(2, str(cookies_file))
+                except Exception as e:
+                    logging.warning(f"Failed to add cookies file: {e}")
+            else:
+                if not cookies_file.exists():
+                    logging.info("No cookies.txt file found - some downloads may fail")
+                else:
+                    logging.warning("cookies.txt file is empty - some downloads may fail")
             # Add ffmpeg location if specified in config
             ffmpeg_path = self.config.get('ffmpeg_path')
             if ffmpeg_path:

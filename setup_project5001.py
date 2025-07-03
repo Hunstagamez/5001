@@ -161,8 +161,18 @@ def get_main_node_config() -> Dict:
     check_interval = input("Check interval in seconds (default: 3600): ").strip()
     config['check_interval'] = int(check_interval) if check_interval else 3600
     
-    # FFmpeg path will be auto-detected by yt-dlp
-    config['ffmpeg_path'] = shutil.which('ffmpeg') or '/usr/bin/ffmpeg'
+    # Fixed: Better FFmpeg path detection with fallback
+    ffmpeg_path = shutil.which('ffmpeg')
+    if not ffmpeg_path:
+        # Try common locations as fallback
+        common_paths = ['/usr/bin/ffmpeg', '/usr/local/bin/ffmpeg', './ffmpeg.exe']
+        for path in common_paths:
+            if Path(path).exists():
+                ffmpeg_path = path
+                break
+        else:
+            ffmpeg_path = 'ffmpeg'  # Let yt-dlp find it
+    config['ffmpeg_path'] = ffmpeg_path
     
     return config
 
