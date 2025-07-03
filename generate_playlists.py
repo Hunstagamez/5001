@@ -20,6 +20,10 @@ load_dotenv()
 DEST_DIR = Path(os.getenv('DEST_DIR', './Project5001/Harvest'))
 PLAYLISTS_DIR = Path('./Project5001/Playlists')
 
+# Fixed: Ensure logs directory exists before setting up logging
+logs_dir = Path('./Project5001/Logs')
+logs_dir.mkdir(parents=True, exist_ok=True)
+
 # Setup logging
 logging.basicConfig(
     level=logging.INFO,

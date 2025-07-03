@@ -12,6 +12,7 @@ import time
 import json
 import platform  # Added for cross-platform compatibility
 import psutil  # Cross-platform process utilities (add to requirements)
+import shutil  # Fixed: Added missing import for FFmpeg detection
 from pathlib import Path
 from typing import Dict, List, Optional
 
