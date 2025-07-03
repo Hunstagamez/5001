@@ -235,16 +235,29 @@ class HarvesterManager:
     def _detect_harvester_process(self) -> bool:
         """Detect harvester process using system commands."""
         try:
-            if platform.system() == "Windows":
-                result = subprocess.run(['tasklist', '/FI', 'IMAGENAME eq python.exe', '/FO', 'CSV'], 
-                                      capture_output=True, text=True)
-                return result.returncode == 0 and 'harvester_v2.py' in result.stdout
-            else:
-                result = subprocess.run(['pgrep', '-f', 'harvester_v2.py'], 
-                                      capture_output=True, text=True)
-                return result.returncode == 0
-        except Exception:
+            # Fixed: Use psutil for more reliable cross-platform process detection
+            import psutil
+            for proc in psutil.process_iter(['pid', 'name', 'cmdline']):
+                try:
+                    cmdline = proc.info['cmdline']
+                    if cmdline and any('harvester_v2.py' in arg for arg in cmdline):
+                        return True
+                except (psutil.NoSuchProcess, psutil.AccessDenied, psutil.ZombieProcess):
+                    continue
             return False
+        except ImportError:
+            # Fallback to platform-specific commands if psutil not available
+            try:
+                if platform.system() == "Windows":
+                    result = subprocess.run(['tasklist', '/FI', 'IMAGENAME eq python.exe', '/FO', 'CSV'], 
+                                          capture_output=True, text=True)
+                    return result.returncode == 0 and 'harvester_v2.py' in result.stdout
+                else:
+                    result = subprocess.run(['pgrep', '-f', 'harvester_v2.py'], 
+                                          capture_output=True, text=True)
+                    return result.returncode == 0
+            except Exception:
+                return False
     
     def _get_pid(self) -> Optional[int]:
         """Get PID from PID file."""

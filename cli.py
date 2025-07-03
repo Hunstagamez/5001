@@ -43,6 +43,10 @@ class Project5001CLI:
         
     def setup_logging(self):
         """Setup logging for CLI operations."""
+        # Fixed: Ensure log directory exists before creating log files
+        log_dir = Path('Project5001/Logs')
+        log_dir.mkdir(parents=True, exist_ok=True)
+        
         logging.basicConfig(
             level=logging.INFO,
             format='%(asctime)s - %(levelname)s - %(message)s',

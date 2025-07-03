@@ -40,7 +40,17 @@ class AdvancedHarvester:
     def _initialize_device(self):
         """Initialize this device in the rotation pool."""
         device_id = self.config.get('syncthing.device_id')
-        device_name = f"{self.config.role}-{platform.node() if hasattr(platform, 'node') else 'unknown'}"
+        
+        # Fixed: More robust cross-platform device name generation
+        try:
+            hostname = platform.node() or 'unknown'
+        except Exception:
+            hostname = 'unknown'
+        
+        # Sanitize hostname for cross-platform compatibility
+        hostname = re.sub(r'[^\w\-\.]', '_', hostname)[:50]
+        
+        device_name = f"{self.config.role}-{hostname}"
         device_type = self.config.role
         
         self.device_manager.register_device(device_id, device_name, device_type)
@@ -483,8 +493,17 @@ def main():
     
     # Determine role from command line or environment
     role = 'main'
-    if len(sys.argv) > 1:
-        role = sys.argv[1]
+    daemon_mode = False
+    
+    # Parse command line arguments
+    i = 1
+    while i < len(sys.argv):
+        arg = sys.argv[i]
+        if arg == '--daemon':
+            daemon_mode = True
+        elif arg in ['main', 'secondary', 'mobile']:
+            role = arg
+        i += 1
     
     # Create configuration
     config = NodeConfig(role)
@@ -497,10 +516,12 @@ def main():
     # Create harvester
     harvester = AdvancedHarvester(config)
     
-    # Check if running as daemon
-    if len(sys.argv) > 2 and sys.argv[2] == '--daemon':
+    # Run in appropriate mode
+    if daemon_mode:
+        # Fixed: Actually call run_daemon() when --daemon flag is present
         harvester.run_daemon()
     else:
+        # Fixed: Run single harvest cycle for non-daemon mode
         harvester.run_harvest_cycle()
 
 if __name__ == '__main__':
