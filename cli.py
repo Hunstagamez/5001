@@ -34,13 +34,6 @@ class Project5001CLI:
         self.config = None
         self.setup_logging()
         
-        # Import harvester manager
-        try:
-            from harvester_manager import HarvesterManager
-            self.harvester_manager = HarvesterManager()
-        except ImportError:
-            self.harvester_manager = None
-        
     def setup_logging(self):
         """Setup logging for CLI operations."""
         logging.basicConfig(
@@ -74,57 +67,43 @@ class Project5001CLI:
             {"id": "0", "title": "🚪 Exit", "action": self.exit_cli}
         ]
     
-    def show_menu(self, title: str, options: List[Dict], back_action=None, dynamic_options=None):
-        """Display a menu with options. Loops until user chooses back/exit."""
+    def show_menu(self, title: str, options: List[Dict], back_action=None):
+        """Display a menu with options."""
         while True:
-            # Get fresh options if dynamic_options function is provided
-            if dynamic_options:
-                current_options = dynamic_options()
-            else:
-                current_options = options
-            
             print(f"\n{title}")
             print("=" * len(title))
-            for option in current_options:
+            
+            for option in options:
                 print(f"{option['id']}. {option['title']}")
+            
             if back_action:
                 print("b. Back to previous menu")
+            
             choice = input(f"\nEnter your choice: ").strip().lower()
+            
             if choice == 'b' and back_action:
                 back_action()
                 return
-            for option in current_options:
+            
+            # Find and execute the chosen action
+            for option in options:
                 if option['id'] == choice:
-                    option['action']()  # After action, show menu again
-                    break
-            else:
-                print("❌ Invalid choice. Please try again.")
+                    option['action']()
+                    return
+            
+            print("❌ Invalid choice. Please try again.")
     
     def harvester_menu(self):
-        """Harvester control menu with dynamic options based on status."""
-        self.show_menu("🎵 Harvester Control", [], self.main_menu, self.get_harvester_menu_options)
-    
-    def get_harvester_menu_options(self):
-        """Get harvester menu options based on current status."""
-        # Check if harvester is running
-        is_running = self.is_harvester_running()
+        """Harvester control menu."""
+        options = [
+            {"id": "1", "title": "▶️  Start Harvester (Daemon)", "action": self.start_harvester_daemon},
+            {"id": "2", "title": "⏸️  Stop Harvester", "action": self.stop_harvester},
+            {"id": "3", "title": "🔄 Run Single Harvest Cycle", "action": self.run_single_harvest},
+            {"id": "4", "title": "📊 Harvester Status", "action": self.check_harvester_status},
+            {"id": "5", "title": "🔧 Test Configuration", "action": self.test_harvester_config}
+        ]
         
-        if not is_running:
-            # Harvester is not running - show start options
-            return [
-                {"id": "1", "title": "▶️  Start Harvester (Daemon)", "action": self.start_harvester_daemon},
-                {"id": "2", "title": "🔄 Run Single Harvest Cycle", "action": self.run_single_harvest},
-                {"id": "3", "title": "📊 Harvester Status", "action": self.check_harvester_status},
-                {"id": "4", "title": "🔧 Test Configuration", "action": self.test_harvester_config}
-            ]
-        else:
-            # Harvester is running - show stop and monitoring options
-            return [
-                {"id": "1", "title": "⏸️  Stop Harvester", "action": self.stop_harvester},
-                {"id": "2", "title": "📊 Harvester Status", "action": self.check_harvester_status},
-                {"id": "3", "title": "👁️  View Real-time Logs", "action": self.view_realtime_logs},
-                {"id": "4", "title": "🔧 Test Configuration", "action": self.test_harvester_config}
-            ]
+        self.show_menu("🎵 Harvester Control", options, self.main_menu)
     
     def playlist_menu(self):
         """Playlist management menu."""
@@ -211,25 +190,20 @@ class Project5001CLI:
     def start_harvester_daemon(self):
         """Start harvester in daemon mode."""
         print("\n🔄 Starting Project 5001 Harvester in daemon mode...")
-        
-        if not self.harvester_manager:
-            print("❌ Harvester manager not available")
-            return
-        
         try:
-            result = self.harvester_manager.start_harvester(daemon_mode=True)
+            # Check if already running
+            if self.is_harvester_running():
+                print("⚠️  Harvester is already running!")
+                return
             
-            if result["success"]:
-                print("✅ Harvester started successfully!")
-                print(f"Process ID: {result['pid']}")
-                print("\n📝 To view real-time logs in a new terminal:")
-                print("   python launch_log_viewer.py")
-                print("   (or manually: python view_harvester_logs.py)")
-                print("\n📊 Or check status: python cli.py -> Harvester Control -> Harvester Status")
-            else:
-                print(f"❌ Failed to start harvester: {result['message']}")
-                if 'stderr' in result:
-                    print(f"Error details: {result['stderr']}")
+            # Start harvester
+            process = subprocess.Popen([
+                sys.executable, 'harvester_v2.py', 'main', '--daemon'
+            ], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+            
+            print("✅ Harvester started successfully!")
+            print(f"Process ID: {process.pid}")
+            print("Check logs with: python cli.py -> Logs -> View Recent Logs")
             
         except Exception as e:
             print(f"❌ Failed to start harvester: {e}")
@@ -237,18 +211,29 @@ class Project5001CLI:
     def stop_harvester(self):
         """Stop harvester daemon."""
         print("\n⏹️  Stopping Project 5001 Harvester...")
-        
-        if not self.harvester_manager:
-            print("❌ Harvester manager not available")
-            return
-        
         try:
-            result = self.harvester_manager.stop_harvester()
+            # Find harvester processes (cross-platform)
+            harvester_processes = []
+            for proc in psutil.process_iter(['pid', 'name', 'cmdline']):
+                try:
+                    if 'harvester_v2.py' in ' '.join(proc.info['cmdline'] or []):
+                        harvester_processes.append(proc)
+                except (psutil.NoSuchProcess, psutil.AccessDenied):
+                    continue
             
-            if result["success"]:
-                print("✅ Harvester stopped successfully!")
+            if harvester_processes:
+                for proc in harvester_processes:
+                    try:
+                        proc.terminate()  # Graceful termination
+                        proc.wait(timeout=5)  # Wait up to 5 seconds
+                        print(f"✅ Stopped harvester process {proc.pid}")
+                    except psutil.TimeoutExpired:
+                        proc.kill()  # Force kill if needed
+                        print(f"✅ Force stopped harvester process {proc.pid}")
+                    except Exception as e:
+                        print(f"⚠️  Could not stop process {proc.pid}: {e}")
             else:
-                print(f"❌ Failed to stop harvester: {result['message']}")
+                print("ℹ️  No harvester processes found")
                 
         except Exception as e:
             print(f"❌ Failed to stop harvester: {e}")
@@ -274,26 +259,8 @@ class Project5001CLI:
     def check_harvester_status(self):
         """Check if harvester is running."""
         print("\n📊 Checking harvester status...")
-        
-        if not self.harvester_manager:
-            # Fallback to simple check
-            if self.is_harvester_running():
-                print("✅ Harvester is running")
-            else:
-                print("❌ Harvester is not running")
-            return
-        
-        # Get detailed status
-        status = self.harvester_manager.get_status()
-        
-        if status["running"]:
+        if self.is_harvester_running():
             print("✅ Harvester is running")
-            if "pid" in status:
-                print(f"   Process ID: {status['pid']}")
-            if "start_time" in status:
-                print(f"   Started: {status['start_time'][:19]}")
-            if "daemon_mode" in status:
-                print(f"   Mode: {'Daemon' if status['daemon_mode'] else 'Single Cycle'}")
         else:
             print("❌ Harvester is not running")
     
@@ -309,40 +276,8 @@ class Project5001CLI:
         except Exception as e:
             print(f"❌ Configuration test failed: {e}")
     
-    def view_realtime_logs(self):
-        """View real-time harvester logs."""
-        print("\n👁️  Real-time Harvester Logs")
-        print("=" * 50)
-        
-        if not self.is_harvester_running():
-            print("❌ Harvester is not running!")
-            print("Start the harvester first to view logs.")
-            return
-        
-        print("📝 To view real-time logs in a new terminal window:")
-        print("   python launch_log_viewer.py")
-        print("   (or manually: python view_harvester_logs.py)")
-        print()
-        print("📊 Or view recent logs here:")
-        
-        if self.harvester_manager:
-            logs = self.harvester_manager.get_recent_logs(20)
-            if logs:
-                print("-" * 50)
-                for line in logs:
-                    print(line.rstrip())
-                print("-" * 50)
-            else:
-                print("ℹ️  No recent log entries found")
-        else:
-            print("❌ Log viewer not available")
-    
     def is_harvester_running(self) -> bool:
-        """Check if harvester process is running."""
-        if self.harvester_manager:
-            return self.harvester_manager.is_running()
-        
-        # Fallback to old method if manager not available
+        """Check if harvester process is running (cross-platform)."""
         try:
             for proc in psutil.process_iter(['pid', 'name', 'cmdline']):
                 try:
