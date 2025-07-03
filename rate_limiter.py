@@ -12,6 +12,7 @@ from datetime import datetime, timedelta
 from typing import Dict, List, Optional, Tuple
 from config import NodeConfig
 from database import Project5001Database
+import sqlite3
 
 class RateLimitDetector:
     """Detects rate limiting from YouTube and manages device rotation."""
@@ -246,7 +247,7 @@ class DeviceManager:
     def deactivate_device(self, device_id: str) -> bool:
         """Deactivate a device from rotation."""
         try:
-            conn = self.db.db_path
+            conn = sqlite3.connect(self.db.db_path)
             cursor = conn.cursor()
             
             cursor.execute('''
@@ -268,7 +269,7 @@ class DeviceManager:
     def reactivate_device(self, device_id: str) -> bool:
         """Reactivate a device in rotation."""
         try:
-            conn = self.db.db_path
+            conn = sqlite3.connect(self.db.db_path)
             cursor = conn.cursor()
             
             cursor.execute('''

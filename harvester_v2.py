@@ -5,13 +5,13 @@ Core harvesting system with rate limiting detection, device rotation, and smart 
 """
 
 import os
-import sys
 import json
 import logging
 import time
 import subprocess
 import requests
 import re
+import platform  # Added for cross-platform compatibility
 from datetime import datetime, timedelta
 from pathlib import Path
 from typing import List, Dict, Optional, Tuple
@@ -40,7 +40,7 @@ class AdvancedHarvester:
     def _initialize_device(self):
         """Initialize this device in the rotation pool."""
         device_id = self.config.get('syncthing.device_id')
-        device_name = f"{self.config.role}-{os.uname().nodename if hasattr(os, 'uname') else 'unknown'}"
+        device_name = f"{self.config.role}-{platform.node() if hasattr(platform, 'node') else 'unknown'}"
         device_type = self.config.role
         
         self.device_manager.register_device(device_id, device_name, device_type)
@@ -50,7 +50,7 @@ class AdvancedHarvester:
         """Fetch videos from a YouTube playlist using yt-dlp."""
         try:
             cmd = [
-                sys.executable, '-m', 'yt_dlp',
+                'yt-dlp',
                 '--flat-playlist',
                 '--dump-json',
                 '--no-warnings',
@@ -112,7 +112,7 @@ class AdvancedHarvester:
         return f"{next_num:05d}"
     
     def clean_title(self, title: str) -> str:
-        """Clean video title for filename."""
+        """Clean video title for filename with enhanced safety."""
         # Remove common YouTube suffixes
         suffixes = [
             r'\s*\[OFFICIAL VIDEO\]',
@@ -141,9 +141,19 @@ class AdvancedHarvester:
         for suffix in suffixes:
             cleaned = re.sub(suffix, '', cleaned, flags=re.IGNORECASE)
         
-        # Remove invalid filename characters
+        # Enhanced filename sanitization for cross-platform compatibility
+        # Remove/replace invalid filename characters for Windows/Unix
         cleaned = re.sub(r'[<>:"/\\|?*]', '', cleaned)
-        cleaned = cleaned.strip()
+        cleaned = re.sub(r'[\x00-\x1f\x7f-\x9f]', '', cleaned)  # Remove control characters
+        cleaned = re.sub(r'[^\w\s\-\.\(\)\[\]&]', '', cleaned)  # Keep only safe characters
+        cleaned = re.sub(r'\s+', ' ', cleaned)  # Normalize whitespace
+        cleaned = cleaned.strip('. ')  # Remove leading/trailing dots and spaces
+        
+        # Ensure filename isn't empty and isn't too long
+        if not cleaned:
+            cleaned = "Unknown_Title"
+        if len(cleaned) > 100:  # Limit filename length
+            cleaned = cleaned[:100].strip()
         
         return cleaned
     
@@ -230,7 +240,7 @@ class AdvancedHarvester:
         """Attempt to download a video with specific settings."""
         try:
             cmd = [
-                sys.executable, '-m', 'yt_dlp',
+                'yt-dlp',
                 '-f', format_spec,
                 '--extract-audio',
                 '--audio-format', 'mp3',
@@ -447,45 +457,25 @@ class AdvancedHarvester:
         """Run as continuous daemon."""
         logging.info("Starting Project 5001 Advanced Harvester daemon")
         
-        # Create PID file
-        pid_file = Path("Project5001/harvester.pid")
-        pid_file.parent.mkdir(parents=True, exist_ok=True)
-        
-        try:
-            with open(pid_file, 'w') as f:
-                f.write(str(os.getpid()))
-            logging.info(f"Created PID file: {pid_file}")
-        except Exception as e:
-            logging.error(f"Failed to create PID file: {e}")
-        
         check_interval = self.config.get('check_interval', 3600)
         
-        try:
-            while True:
-                try:
-                    self.run_harvest_cycle()
-                    
-                    # Log rotation status
-                    rotation_status = self.rate_detector.get_rotation_status()
-                    logging.info(f"Rotation status: {rotation_status['available_devices']}/{rotation_status['total_devices']} devices available")
-                    
-                    logging.info(f"Sleeping for {check_interval} seconds")
-                    time.sleep(check_interval)
-                    
-                except KeyboardInterrupt:
-                    logging.info("Harvester stopped by user")
-                    break
-                except Exception as e:
-                    logging.error(f"Harvester error: {e}")
-                    time.sleep(60)  # Wait before retrying
-        finally:
-            # Clean up PID file
+        while True:
             try:
-                if pid_file.exists():
-                    pid_file.unlink()
-                    logging.info("Removed PID file")
+                self.run_harvest_cycle()
+                
+                # Log rotation status
+                rotation_status = self.rate_detector.get_rotation_status()
+                logging.info(f"Rotation status: {rotation_status['available_devices']}/{rotation_status['total_devices']} devices available")
+                
+                logging.info(f"Sleeping for {check_interval} seconds")
+                time.sleep(check_interval)
+                
+            except KeyboardInterrupt:
+                logging.info("Harvester stopped by user")
+                break
             except Exception as e:
-                logging.error(f"Failed to remove PID file: {e}")
+                logging.error(f"Harvester error: {e}")
+                time.sleep(60)  # Wait before retrying
 
 def main():
     """Main entry point."""

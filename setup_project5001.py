@@ -12,9 +12,6 @@ import getpass
 from pathlib import Path
 from typing import Dict, List
 import shutil
-import zipfile
-import urllib.request
-import platform
 
 def print_banner():
     """Print Project 5001 banner."""
@@ -25,45 +22,15 @@ def print_banner():
     print()
 
 def check_ffmpeg() -> str:
-    """Ensure ffmpeg is available. If not, download and extract it locally."""
-    # Check if ffmpeg is in PATH
+    """Ensure ffmpeg is available in system PATH."""
     ffmpeg_path = shutil.which('ffmpeg')
     if ffmpeg_path:
         print(f"✅ ffmpeg found: {ffmpeg_path}")
         return ffmpeg_path
-
-    # If not, check local bin
-    local_bin = Path('Project5001') / 'bin'
-    local_bin.mkdir(parents=True, exist_ok=True)
-    local_ffmpeg = local_bin / 'ffmpeg.exe'
-    if local_ffmpeg.exists():
-        print(f"✅ ffmpeg found: {local_ffmpeg}")
-        return str(local_ffmpeg)
-
-    # Download for Windows only
-    if platform.system() == 'Windows':
-        print("❌ ffmpeg not found. Downloading ffmpeg for Windows...")
-        ffmpeg_url = "https://www.gyan.dev/ffmpeg/builds/ffmpeg-release-essentials.zip"
-        zip_path = local_bin / 'ffmpeg.zip'
-        try:
-            urllib.request.urlretrieve(ffmpeg_url, zip_path)
-            print("✅ Downloaded ffmpeg zip")
-            with zipfile.ZipFile(zip_path, 'r') as zip_ref:
-                # Find ffmpeg.exe in the zip
-                for member in zip_ref.namelist():
-                    if member.endswith('ffmpeg.exe'):
-                        zip_ref.extract(member, local_bin)
-                        extracted = local_bin / member
-                        extracted.rename(local_ffmpeg)
-                        print(f"✅ Extracted ffmpeg.exe to {local_ffmpeg}")
-                        break
-            zip_path.unlink()
-            return str(local_ffmpeg)
-        except Exception as e:
-            print(f"❌ Failed to download/extract ffmpeg: {e}")
-            return ''
     else:
         print("❌ ffmpeg not found. Please install ffmpeg using your package manager.")
+        print("   On Ubuntu/Debian: sudo apt install ffmpeg")
+        print("   On CentOS/RHEL: sudo yum install ffmpeg")
         return ''
 
 def check_dependencies() -> bool:
@@ -78,7 +45,7 @@ def check_dependencies() -> bool:
     
     # Check yt-dlp
     try:
-        result = subprocess.run([sys.executable, '-m', 'yt_dlp', '--version'], 
+        result = subprocess.run(['yt-dlp', '--version'], 
                               capture_output=True, text=True, check=True)
         print(f"✅ yt-dlp {result.stdout.strip()}")
     except (subprocess.CalledProcessError, FileNotFoundError):
@@ -194,7 +161,8 @@ def get_main_node_config() -> Dict:
     check_interval = input("Check interval in seconds (default: 3600): ").strip()
     config['check_interval'] = int(check_interval) if check_interval else 3600
     
-    config['ffmpeg_path'] = str(check_ffmpeg())
+    # FFmpeg path will be auto-detected by yt-dlp
+    config['ffmpeg_path'] = shutil.which('ffmpeg') or '/usr/bin/ffmpeg'
     
     return config
 
@@ -242,7 +210,8 @@ def get_secondary_node_config() -> Dict:
         return None
     config['syncthing.device_id'] = device_id
     
-    config['ffmpeg_path'] = str(check_ffmpeg())
+    # FFmpeg path will be auto-detected by yt-dlp
+    config['ffmpeg_path'] = shutil.which('ffmpeg') or '/usr/bin/ffmpeg'
     
     return config
 
@@ -272,7 +241,8 @@ def get_mobile_node_config() -> Dict:
     device_id = input("This device's Syncthing ID: ").strip()
     config['syncthing.device_id'] = device_id
     
-    config['ffmpeg_path'] = str(check_ffmpeg())
+    # FFmpeg path will be auto-detected by yt-dlp
+    config['ffmpeg_path'] = shutil.which('ffmpeg') or '/usr/bin/ffmpeg'
     
     return config
 
