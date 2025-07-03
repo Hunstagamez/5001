@@ -54,8 +54,8 @@ class PlaylistGenerator:
             columns = [row[1] for row in cursor.fetchall()]
             conn.close()
             
-            # Return appropriate column name based on what exists
-            return 'ts' if 'ts' in columns else 'download_date'
+            # Fixed: Prefer download_date for consistency, fallback to ts for legacy
+            return 'download_date' if 'download_date' in columns else 'ts'
         except Exception:
             # Default to download_date for new databases
             return 'download_date'
@@ -239,11 +239,12 @@ class PlaylistGenerator:
         for artist, track_count in artists:
             tracks = self.get_tracks_by_artist(artist)
             if tracks:
-                # Enhanced artist name sanitization for cross-platform filenames
-                safe_artist = "".join(c for c in artist if c.isalnum() or c in (' ', '-', '_')).strip()
+                # Fixed: Improved artist name sanitization for cross-platform filenames
+                safe_artist = "".join(c for c in artist if c.isalnum() or c in (' ', '-', '_', '.', '&')).strip()
                 safe_artist = re.sub(r'\s+', ' ', safe_artist)  # Normalize whitespace
+                safe_artist = re.sub(r'[.]{2,}', '.', safe_artist)  # Remove multiple dots
                 safe_artist = safe_artist[:50] if len(safe_artist) > 50 else safe_artist  # Limit length
-                safe_artist = safe_artist or "Unknown_Artist"  # Fallback for empty names
+                safe_artist = safe_artist.strip('. -_') or "Unknown_Artist"  # Remove trailing chars and fallback
                 
                 playlist_path = self.playlists_dir / 'ByArtist' / f'{safe_artist}.m3u'
                 self.write_playlist(tracks, playlist_path, f"Project 5001 - {artist} ({track_count} tracks)")

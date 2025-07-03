@@ -172,6 +172,12 @@ class NodeConfig:
         if self.role == 'main':
             if not self.get('playlist_urls'):
                 errors.append("Main node requires playlist URLs")
+            # Fixed: Added validation for playlist URL format
+            playlist_urls = self.get('playlist_urls', [])
+            for url in playlist_urls:
+                if not ('youtube.com/playlist' in url or 'youtu.be' in url):
+                    errors.append(f"Invalid playlist URL format: {url}")
+            
             if not self.get('syncthing.api_key'):
                 errors.append("Main node requires Syncthing API key")
         
@@ -183,6 +189,20 @@ class NodeConfig:
         if self.get('syncthing.enabled'):
             if not self.get('syncthing.folder_id'):
                 errors.append("Syncthing folder ID required when enabled")
+            # Fixed: Validate Syncthing API URL format
+            api_url = self.get('syncthing.api_url')
+            if api_url and not (api_url.startswith('http://') or api_url.startswith('https://')):
+                errors.append("Syncthing API URL must start with http:// or https://")
+        
+        # Fixed: Validate directory paths exist
+        required_dirs = ['data_dir', 'harvest_dir', 'logs_dir']
+        for dir_key in required_dirs:
+            dir_path = self.get(dir_key)
+            if dir_path and not os.path.exists(dir_path):
+                try:
+                    os.makedirs(dir_path, exist_ok=True)
+                except Exception as e:
+                    errors.append(f"Cannot create directory {dir_path}: {e}")
         
         if errors:
             for error in errors:

@@ -259,15 +259,23 @@ class Project5001CLI:
         try:
             result = subprocess.run([
                 sys.executable, 'harvester_v2.py', 'main'
-            ], capture_output=True, text=True)
+            ], capture_output=True, text=True, timeout=300)  # Fixed: Added timeout
             
             if result.returncode == 0:
                 print("✅ Harvest cycle completed successfully!")
-                print(result.stdout)
+                if result.stdout.strip():  # Fixed: Only print if there's output
+                    print(result.stdout)
             else:
                 print("❌ Harvest cycle failed!")
-                print(result.stderr)
+                if result.stderr.strip():  # Fixed: Only print if there's error output
+                    print(result.stderr)
+                else:
+                    print("No error details available")
                 
+        except subprocess.TimeoutExpired:
+            print("❌ Harvest cycle timed out after 5 minutes")
+        except FileNotFoundError:
+            print("❌ harvester_v2.py not found. Make sure you're running from the project directory")
         except Exception as e:
             print(f"❌ Failed to run harvest cycle: {e}")
     

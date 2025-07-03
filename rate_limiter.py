@@ -8,6 +8,7 @@ import time
 import logging
 import requests
 import subprocess
+import os  # Fixed: Added missing os import
 from datetime import datetime, timedelta
 from typing import Dict, List, Optional, Tuple
 from config import NodeConfig

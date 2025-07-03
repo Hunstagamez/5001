@@ -10,6 +10,7 @@ import json
 import sqlite3
 import subprocess
 import platform
+import shutil  # Fixed: Added missing shutil import used later in the code
 from pathlib import Path
 from typing import Dict, List, Optional
 import time

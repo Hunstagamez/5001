@@ -34,13 +34,13 @@ class Project5001Status:
         cursor.execute('SELECT COUNT(*) FROM videos')
         total_tracks = cursor.fetchone()[0]
         
-        # Add compatibility layer for ts column name (legacy support)
-        # Check for both column names to handle different database versions
+        # Fixed: Standardized on download_date column for consistency
+        # Check for both column names to handle database migration
         cursor.execute('PRAGMA table_info(videos)')
         columns = [row[1] for row in cursor.fetchall()]
         
-        # Use appropriate column name based on what exists
-        date_column = 'ts' if 'ts' in columns else 'download_date'
+        # Use appropriate column name based on what exists, prefer download_date
+        date_column = 'download_date' if 'download_date' in columns else 'ts'
         
         # Recent tracks (last 7 days)
         week_ago = (datetime.now() - timedelta(days=7)).isoformat()

@@ -109,6 +109,17 @@ class Project5001Database:
                   quality: str = None) -> bool:
         """Add a video to the database."""
         try:
+            # Fixed: Input validation to prevent issues
+            if not video_id or not title or not filename:
+                logging.error("Missing required fields for video")
+                return False
+            
+            # Fixed: Sanitize inputs for safety
+            video_id = str(video_id).strip()
+            title = str(title).strip()[:500]  # Limit title length
+            artist = str(artist or 'Unknown Artist').strip()[:200]  # Limit artist length
+            filename = str(filename).strip()[:255]  # Limit filename length
+            
             conn = sqlite3.connect(self.db_path)
             cursor = conn.cursor()
             
